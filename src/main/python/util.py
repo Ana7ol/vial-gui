@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QScrollArea, QFrame
 
 from hidproxy import hid
 from keycodes.keycodes import Keycode
-from keymaps import KEYMAPS
+from keymaps import DEFAULT_KEYMAP
 
 tr = QCoreApplication.translate
 
@@ -169,8 +169,12 @@ def make_scrollable(layout):
 
 class KeycodeDisplay:
 
-    keymap_override = KEYMAPS[0][1]
+    keymap_override = DEFAULT_KEYMAP[1]
     clients = []
+
+    @classmethod
+    def has_keymap_override(cls):
+        return len(cls.keymap_override) > 0
 
     @classmethod
     def get_label(cls, code):
@@ -184,6 +188,31 @@ class KeycodeDisplay:
         """ Check whether a country-specific keymap overrides a code """
         key = Keycode.find_outer_keycode(code)
         return key is not None and key.qmk_id in cls.keymap_override
+
+    @classmethod
+    def _label_aliases(cls, label):
+        aliases = []
+        for part in label.split("\n"):
+            part = part.strip()
+            if len(part) == 1:
+                aliases.append(part.casefold())
+        return aliases
+
+    @classmethod
+    def find_by_recorder_alias(cls, alias):
+        keycode = Keycode.find_by_recorder_alias(alias)
+        if not alias or len(alias) != 1 or not cls.has_keymap_override():
+            return keycode
+
+        alias = alias.casefold()
+        for qmk_id, label in cls.keymap_override.items():
+            if alias not in cls._label_aliases(label):
+                continue
+            mapped_keycode = Keycode.find_by_qmk_id(qmk_id)
+            if mapped_keycode is not None:
+                return mapped_keycode
+
+        return keycode
 
     @classmethod
     def display_keycode(cls, widget, code):

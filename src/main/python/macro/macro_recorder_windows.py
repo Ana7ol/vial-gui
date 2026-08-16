@@ -5,9 +5,8 @@ from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QApplication
 
-from keycodes.keycodes import Keycode
 from macro.macro_key import KeyUp, KeyDown
-from util import tr
+from util import tr, KeycodeDisplay
 
 
 class WindowsRecorder(QWidget):
@@ -51,7 +50,7 @@ class WindowsRecorder(QWidget):
         self.stopped.emit()
 
     def on_key(self, ev):
-        code = Keycode.find_by_recorder_alias(ev.name)
+        code = KeycodeDisplay.find_by_recorder_alias(ev.name)
         if code is not None:
             action2cls = {"down": KeyDown, "up": KeyUp}
             self.keystroke.emit(action2cls[ev.event_type](code))

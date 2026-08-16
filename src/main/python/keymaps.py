@@ -69,6 +69,9 @@ KEYMAPS = [
     ("US - International (QWERTY)", us_international.keymap),
 ]
 
+DEFAULT_KEYMAP_NAME = "German (QWERTZ)"
+DEFAULT_KEYMAP = next(keymap for keymap in KEYMAPS if keymap[0] == DEFAULT_KEYMAP_NAME)
+
 # make sure that qmk IDs we used are all correct
 for name, keymap in KEYMAPS:
     for qmk_id in keymap.keys():

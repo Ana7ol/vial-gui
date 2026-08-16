@@ -20,7 +20,7 @@ from editor.firmware_flasher import FirmwareFlasher
 from editor.key_override import KeyOverride
 from protocol.keyboard_comm import ProtocolError
 from editor.keymap_editor import KeymapEditor
-from keymaps import KEYMAPS
+from keymaps import DEFAULT_KEYMAP_NAME, KEYMAPS
 from editor.layout_editor import LayoutEditor
 from editor.macro_recorder import MacroRecorder
 from editor.qmk_settings import QmkSettings
@@ -31,6 +31,7 @@ from unlocker import Unlocker
 from util import tr, EXAMPLE_KEYBOARDS, KeycodeDisplay, EXAMPLE_KEYBOARD_PREFIX
 from vial_device import VialKeyboard
 from editor.matrix_test import MatrixTest
+from keycode_reference import KeycodeReference
 
 import themes
 
@@ -198,19 +199,25 @@ class MainWindow(QMainWindow):
 
         keyboard_layout_menu = self.menuBar().addMenu(tr("Menu", "Keyboard layout"))
         keymap_group = QActionGroup(self)
-        selected_keymap = self.settings.value("keymap")
+        selected_keymap = self.settings.value("keymap", DEFAULT_KEYMAP_NAME)
+        default_keymap_action = None
+        default_keymap_index = 0
         for idx, keymap in enumerate(KEYMAPS):
             act = QAction(tr("KeyboardLayout", keymap[0]), self)
             act.triggered.connect(lambda checked, x=idx: self.change_keyboard_layout(x))
             act.setCheckable(True)
+            if keymap[0] == DEFAULT_KEYMAP_NAME:
+                default_keymap_action = act
+                default_keymap_index = idx
             if selected_keymap == keymap[0]:
                 self.change_keyboard_layout(idx)
                 act.setChecked(True)
             keymap_group.addAction(act)
             keyboard_layout_menu.addAction(act)
-        # check "QWERTY" if nothing else is selected
+        # check the configured default if nothing else is selected
         if keymap_group.checkedAction() is None:
-            keymap_group.actions()[0].setChecked(True)
+            default_keymap_action.setChecked(True)
+            self.change_keyboard_layout(default_keymap_index)
 
         self.security_menu = self.menuBar().addMenu(tr("Menu", "Security"))
         self.security_menu.addAction(keyboard_unlock_act)
@@ -235,10 +242,13 @@ class MainWindow(QMainWindow):
 
         about_vial_act = QAction(tr("MenuAbout", "About Vial..."), self)
         about_vial_act.triggered.connect(self.about_vial)
+        quantum_reference_act = QAction(tr("MenuAbout", "Quantum keycode reference..."), self)
+        quantum_reference_act.triggered.connect(self.quantum_keycode_reference)
         self.about_keyboard_act = QAction("", self)
         self.about_keyboard_act.triggered.connect(self.about_keyboard)
         self.about_menu = self.menuBar().addMenu(tr("Menu", "About"))
         self.about_menu.addAction(self.about_keyboard_act)
+        self.about_menu.addAction(quantum_reference_act)
         self.about_menu.addAction(about_vial_act)
 
     def on_layout_loaded(self, layout):
@@ -458,6 +468,11 @@ class MainWindow(QMainWindow):
         self.about_dialog = AboutKeyboard(self.autorefresh.current_device)
         self.about_dialog.setModal(True)
         self.about_dialog.show()
+
+    def quantum_keycode_reference(self):
+        self.keycode_reference_dialog = KeycodeReference()
+        self.keycode_reference_dialog.setModal(True)
+        self.keycode_reference_dialog.show()
 
     def closeEvent(self, e):
         self.settings.setValue("size", self.size())

@@ -83,6 +83,7 @@ class AboutKeyboard(QDialog):
         text += "Vial keyboard ID: {:08X}\n".format(self.keyboard.keyboard_id)
         text += "\n"
 
+        text += "Layers: {}\n".format(self.keyboard.layers)
         text += "Macro entries: {}\n".format(self.keyboard.macro_count)
         text += "Macro memory: {} bytes\n".format(self.keyboard.macro_memory)
         text += "Macro delays: {}\n".format(self.about_macro_delays())

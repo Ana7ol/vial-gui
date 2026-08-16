@@ -10,7 +10,7 @@ from macro.macro_key import KeyString, KeyDown, KeyUp, KeyTap
 from macro.macro_optimizer import macro_optimize
 from macro.macro_tab import MacroTab
 from unlocker import Unlocker
-from util import tr
+from util import tr, KeycodeDisplay
 from vial_device import VialKeyboard
 from widgets.tab_widget_keycodes import TabWidgetWithKeycodes
 
@@ -127,7 +127,7 @@ class MacroRecorder(BasicEditor):
 
         self.recording_tab.post_record()
 
-        self.keystrokes = macro_optimize(self.keystrokes)
+        self.keystrokes = macro_optimize(self.keystrokes, use_strings=not KeycodeDisplay.has_keymap_override())
         actions = []
         for k in self.keystrokes:
             if isinstance(k, KeyString):

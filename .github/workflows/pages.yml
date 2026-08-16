@@ -1,0 +1,48 @@
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/configure-pages@v5
+
+    - name: Prepare static site
+      run: |
+        mkdir -p public/assets public/docs
+        sed "s|__REPOSITORY_URL__|https://github.com/${GITHUB_REPOSITORY}|g" docs/site/index.html > public/index.html
+        cp docs/site/styles.css public/styles.css
+        cp src/main/icons/linux/512.png public/assets/vial-icon.png
+        cp docs/corne-v4-vial.md public/docs/corne-v4-vial.md
+        cp docs/quantum-keycodes.md public/docs/quantum-keycodes.md
+
+    - uses: actions/upload-pages-artifact@v3
+      with:
+        path: public
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-22.04
+    needs: build
+
+    steps:
+    - id: deployment
+      uses: actions/deploy-pages@v4

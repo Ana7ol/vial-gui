@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Vial GUI German Corne v4</title>
+    <meta name="description" content="A German-first Vial GUI fork with Corne v4 notes, Quantum keycode reference, and GitHub Actions builds.">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="startup-screen">
+      <div class="startup-panel">
+        <img src="./assets/vial-icon.png" alt="Vial app icon" class="app-icon">
+        <p class="eyebrow">Vial GUI German Corne v4</p>
+        <h1>Start with the German layout.</h1>
+        <p class="lede">A desktop Vial GUI fork that defaults to German QWERTZ, records Y/Z by visible sign, and includes Corne v4 firmware notes.</p>
+        <div class="actions">
+          <a href="__REPOSITORY_URL__/actions" class="button">Download Builds</a>
+          <a href="./docs/corne-v4-vial.md" class="button secondary">Corne v4 Guide</a>
+        </div>
+        <p class="support-note">For browser-based Vial, use <a href="https://vial.rocks/">vial.rocks</a>. This site publishes the fork, docs, and build artifacts.</p>
+      </div>
+      <div class="version-strip">
+        <span>Layout: German (QWERTZ)</span>
+        <span>Target: Corne v4</span>
+        <span>CI: GitHub Actions</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="feature-band">
+        <div class="content-grid">
+          <article>
+            <h2>German Layout By Default</h2>
+            <p>The GUI opens with the German QWERTZ keymap selected. Recording keys while German is active now resolves visible letters like Y and Z to the HID keycodes a German OS layout expects.</p>
+          </article>
+          <article>
+            <h2>Corne v4 Capacity Notes</h2>
+            <p>Layers, macro slots, tap dance entries, combos, key overrides, and alt-repeat entries are firmware limits. The Corne guide shows the `config.h` and `rules.mk` settings to raise them before flashing.</p>
+          </article>
+          <article>
+            <h2>Quantum Reference</h2>
+            <p>The app includes an About-menu reference generated from Vial's actual Quantum keycode table, including QMK IDs, aliases, and plain-language behavior.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="download-section">
+        <div>
+          <h2>Builds And Testing</h2>
+          <p>GitHub Actions builds Linux, macOS, and Windows artifacts and runs the Python test suite. Tagged or branch builds can be collected from the repository Actions page.</p>
+        </div>
+        <a href="__REPOSITORY_URL__/actions" class="button secondary">View Actions</a>
+      </section>
+
+      <section class="reference">
+        <h2>Reference Docs</h2>
+        <a href="./docs/corne-v4-vial.md">Corne v4 German/Vial tuning</a>
+        <a href="./docs/quantum-keycodes.md">Quantum keycode reference</a>
+      </section>
+    </main>
+  </body>
+</html>

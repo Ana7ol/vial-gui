@@ -56,8 +56,9 @@ def replace_with_string(sequence):
     return out
 
 
-def macro_optimize(sequence):
+def macro_optimize(sequence, use_strings=True):
     sequence = remove_repeats(sequence)
     sequence = replace_with_tap(sequence)
-    sequence = replace_with_string(sequence)
+    if use_strings:
+        sequence = replace_with_string(sequence)
     return sequence

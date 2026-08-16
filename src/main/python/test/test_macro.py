@@ -5,7 +5,7 @@ from protocol.dummy_keyboard import DummyKeyboard
 from keycodes.keycodes import Keycode, recreate_keyboard_keycodes
 from macro.macro_action import ActionTap, ActionDown, ActionText, ActionDelay, ActionUp
 from macro.macro_key import KeyDown, KeyTap, KeyUp, KeyString
-from macro.macro_optimizer import remove_repeats, replace_with_tap, replace_with_string
+from macro.macro_optimizer import macro_optimize, remove_repeats, replace_with_tap, replace_with_string
 
 KC_A = Keycode.find_by_qmk_id("KC_A")
 KC_B = Keycode.find_by_qmk_id("KC_B")
@@ -31,6 +31,11 @@ class TestMacro(unittest.TestCase):
 
     def test_replace_string(self):
         self.assertEqual(replace_with_string([KeyTap(KC_A), KeyTap(KC_B)]), [KeyString("ab")])
+
+    def test_macro_optimize_can_keep_taps(self):
+        self.assertEqual(macro_optimize([KeyDown(KC_A), KeyUp(KC_A), KeyDown(KC_B), KeyUp(KC_B)],
+                                        use_strings=False),
+                         [KeyTap(KC_A), KeyTap(KC_B)])
 
     def test_serialize_v1(self):
         kb = DummyKeyboard(None)

@@ -7,9 +7,8 @@ from PyQt5.QtCore import pyqtSignal, QProcess
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QApplication
 from fbs_runtime.application_context import is_frozen
 
-from keycodes.keycodes import Keycode
 from macro.macro_key import KeyUp, KeyDown
-from util import tr
+from util import tr, KeycodeDisplay
 
 
 class LinuxRecorder(QWidget):
@@ -62,8 +61,8 @@ class LinuxRecorder(QWidget):
     def on_output(self):
         if self.process.canReadLine():
             line = bytes(self.process.readLine()).decode("utf-8")
-            action, key = line.strip().split(":")
-            code = Keycode.find_by_recorder_alias(key)
+            action, key = line.strip().split(":", 1)
+            code = KeycodeDisplay.find_by_recorder_alias(key)
             if code is not None:
                 action2cls = {"down": KeyDown, "up": KeyUp}
                 self.keystroke.emit(action2cls[action](code))
