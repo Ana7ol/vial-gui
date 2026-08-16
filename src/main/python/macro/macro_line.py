@@ -3,7 +3,7 @@
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
 from PyQt5.QtWidgets import QHBoxLayout, QToolButton, QComboBox
 
-from macro.macro_action_ui import ActionTextUI, ActionDownUI, ActionUpUI, ActionTapUI, ActionDelayUI
+from macro.macro_action_ui import ActionExactTextUI, ActionTextUI, ActionDownUI, ActionUpUI, ActionTapUI, ActionDelayUI
 from protocol.constants import VIAL_PROTOCOL_ADVANCED_MACROS
 
 
@@ -11,8 +11,8 @@ class MacroLine(QObject):
 
     changed = pyqtSignal()
 
-    types = ["Text", "Down", "Up", "Tap"]
-    type_to_cls = [ActionTextUI, ActionDownUI, ActionUpUI, ActionTapUI]
+    types = ["Exact text (German)", "Raw text (QMK/US)", "Down", "Up", "Tap"]
+    type_to_cls = [ActionExactTextUI, ActionTextUI, ActionDownUI, ActionUpUI, ActionTapUI]
 
     def __init__(self, parent, action):
         super().__init__()

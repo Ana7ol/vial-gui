@@ -1,4 +1,4 @@
-name: Pages
+name: Vial Web Pages
 
 on:
   push:
@@ -12,29 +12,86 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-22.04
+    timeout-minutes: 120
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Check out custom Vial GUI
+      uses: actions/checkout@v4
+
+    - name: Check out pinned Vial Web runtime
+      uses: actions/checkout@v4
+      with:
+        repository: vial-kb/vial-web
+        ref: 3749f8dabc6d186f9b17cb75eed64e6bf0e23e16
+        path: .vial-web
+
+    - name: Check out this GUI inside the web build
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.sha }}
+        path: .vial-web/vial-gui
+
+    - name: Check out VIA keyboard definitions
+      uses: actions/checkout@v4
+      with:
+        repository: vial-kb/via-keymap-precompiled
+        ref: main
+        path: .vial-web/via-keymap-precompiled
+
+    - name: Cache Vial Web toolchain
+      id: web-cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          .vial-web/emsdk
+          .vial-web/sources
+          .vial-web/deps
+        key: vial-web-ubuntu22-${{ hashFiles('.vial-web/version.sh', '.vial-web/patches/**') }}
+
+    - name: Build Vial Web dependencies
+      if: steps.web-cache.outputs.cache-hit != 'true'
+      working-directory: .vial-web
+      run: |
+        ./fetch-emsdk.sh
+        ./fetch-deps.sh
+        ./build-deps.sh
+
+    - name: Apply the modern browser shell
+      working-directory: .vial-web
+      env:
+        REPOSITORY_URL: https://github.com/${{ github.repository }}
+        GUI_VERSION: ${{ github.sha }}
+      run: |
+        cp vial-gui/web/index.html src/index.html
+        cp vial-gui/web/styles.css src/styles.css
+        cp vial-gui/web/app.js src/app.js
+        cp vial-gui/web/coi-serviceworker.js src/coi-serviceworker.js
+        sed -i "s|@REPOSITORY_URL@|${REPOSITORY_URL}|g" src/index.html
+        sed -i "s|@VIAL_VER_SHORT@|${GUI_VERSION:0:7}|g" src/index.html
+        sed -i "s|@WEB_VER_SHORT@|3749f8d|g" src/index.html
+
+    - name: Build browser configurator
+      working-directory: .vial-web/src
+      run: |
+        ./build.sh
+        cp styles.css build/styles.css
+        cp app.js build/app.js
+        cp coi-serviceworker.js build/coi-serviceworker.js
+        mkdir -p build/docs
+        cp ../vial-gui/docs/corne-v4-vial.md build/docs/corne-v4-vial.md
+        cp ../vial-gui/docs/quantum-keycodes.md build/docs/quantum-keycodes.md
 
     - uses: actions/configure-pages@v5
 
-    - name: Prepare static site
-      run: |
-        mkdir -p public/assets public/docs
-        sed "s|__REPOSITORY_URL__|https://github.com/${GITHUB_REPOSITORY}|g" docs/site/index.html > public/index.html
-        cp docs/site/styles.css public/styles.css
-        cp src/main/icons/linux/512.png public/assets/vial-icon.png
-        cp docs/corne-v4-vial.md public/docs/corne-v4-vial.md
-        cp docs/quantum-keycodes.md public/docs/quantum-keycodes.md
-
-    - uses: actions/upload-pages-artifact@v3
+    - name: Upload browser configurator
+      uses: actions/upload-pages-artifact@v3
       with:
-        path: public
+        path: .vial-web/src/build
 
   deploy:
     environment:

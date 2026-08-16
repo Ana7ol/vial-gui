@@ -9,6 +9,7 @@ from macro.macro_action_ui import ui_action
 from macro.macro_key import KeyString, KeyDown, KeyUp, KeyTap
 from macro.macro_optimizer import macro_optimize
 from macro.macro_tab import MacroTab
+from macro.text_encoder import MacroTextEncodingError
 from unlocker import Unlocker
 from util import tr, KeycodeDisplay
 from vial_device import VialKeyboard
@@ -148,7 +149,13 @@ class MacroRecorder(BasicEditor):
         if self.suppress_change:
             return
 
-        data = self.serialize()
+        try:
+            data = self.serialize()
+        except MacroTextEncodingError as exc:
+            self.lbl_memory.setText("Exact text error: {}".format(exc))
+            self.lbl_memory.setStyleSheet("QLabel { color: red; }")
+            self.btn_save.setEnabled(False)
+            return
         memory = len(data)
         self.lbl_memory.setText("Memory used by macros: {}/{}".format(memory, self.keyboard.macro_memory))
         self.btn_save.setEnabled(data != self.keyboard.macro and memory <= self.keyboard.macro_memory)

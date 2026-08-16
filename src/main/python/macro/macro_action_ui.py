@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QLineEdit, QToolButton, QWidget, QSizePolicy, QSpinB
 from constants import KEY_SIZE_RATIO
 from tabbed_keycodes import TabbedKeycodes
 from widgets.flowlayout import FlowLayout
-from macro.macro_action import ActionText, ActionSequence, ActionDown, ActionUp, ActionTap, ActionDelay
+from macro.macro_action import ActionText, ActionExactText, ActionSequence, ActionDown, ActionUp, ActionTap, ActionDelay
 from widgets.key_widget import KeyWidget
 
 
@@ -45,6 +45,7 @@ class ActionTextUI(BasicActionUI):
         super().__init__(container, act)
         self.text = QLineEdit()
         self.text.setText(self.act.text)
+        self.text.setToolTip("Raw QMK send-string text; output follows the firmware's US character table")
         self.text.textChanged.connect(self.on_change)
 
     def insert(self, row):
@@ -59,6 +60,15 @@ class ActionTextUI(BasicActionUI):
     def on_change(self):
         self.act.text = self.text.text()
         self.changed.emit()
+
+
+class ActionExactTextUI(ActionTextUI):
+
+    actcls = ActionExactText
+
+    def __init__(self, container, act=None):
+        super().__init__(container, act)
+        self.text.setToolTip("Compiles characters to German QWERTZ key taps so shell punctuation stays exact")
 
 
 class ActionSequenceUI(BasicActionUI):
@@ -188,11 +198,13 @@ tag_to_action = {
     "up": ActionUp,
     "tap": ActionTap,
     "text": ActionText,
+    "exact-text": ActionExactText,
     "delay": ActionDelay,
 }
 
 ui_action = {
     ActionText: ActionTextUI,
+    ActionExactText: ActionExactTextUI,
     ActionUp: ActionUpUI,
     ActionDown: ActionDownUI,
     ActionTap: ActionTapUI,

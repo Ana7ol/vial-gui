@@ -230,6 +230,7 @@ def test_about_keyboard(qtbot):
          'Vial protocol: 6\n'
          'Vial keyboard ID: F00DFACEDEADBEEF\n'
          '\n'
+         'Layers: 4\n'
          'Macro entries: 8\n'
          'Macro memory: 512 bytes\n'
          'Macro delays: yes\n'
@@ -397,7 +398,7 @@ def test_layer_switch(qtbot):
 
     # change current key to Z
     qtbot.mouseClick(find_key_btn(ak, "Z"), qt_api.QtCore.Qt.MouseButton.LeftButton)
-    assert vk.keymap[0][0][0] == 0x1D
+    assert vk.keymap[0][0][0] == 0x1C
     assert vk.keymap[1][0][0] == 0
 
     # make sure display for the widget now says Z
@@ -428,8 +429,8 @@ def test_layer_switch(qtbot):
 
     # change current key to Y
     qtbot.mouseClick(find_key_btn(ak, "Y"), qt_api.QtCore.Qt.MouseButton.LeftButton)
-    assert vk.keymap[0][0][0] == 0x1D
-    assert vk.keymap[1][0][0] == 0x1C
+    assert vk.keymap[0][0][0] == 0x1C
+    assert vk.keymap[1][0][0] == 0x1D
 
     # make sure display for the widget now says Y
     assert c.widgets[0].text == "Y"

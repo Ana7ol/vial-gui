@@ -2,7 +2,8 @@
 import struct
 
 from keycodes.keycodes import Keycode
-from protocol.constants import VIAL_PROTOCOL_ADVANCED_MACROS
+from protocol.constants import VIAL_PROTOCOL_ADVANCED_MACROS, VIAL_PROTOCOL_EXT_MACROS
+from macro.text_encoder import GERMAN_TEXT_LAYOUT, compile_text
 
 SS_QMK_PREFIX = 1
 
@@ -157,3 +158,52 @@ class ActionDelay(BasicAction):
 
     def __eq__(self, other):
         return super().__eq__(other) and self.delay == other.delay
+
+
+class ActionExactText(BasicAction):
+
+    tag = "exact-text"
+
+    def __init__(self, text="", layout=GERMAN_TEXT_LAYOUT):
+        super().__init__()
+        self.text = text
+        self.layout = layout
+
+    @staticmethod
+    def _modified_keycode(modifier, keycode):
+        masks = {
+            "KC_LSHIFT": "LSFT({})",
+            "KC_RALT": "RALT({})",
+        }
+        return masks[modifier].format(keycode)
+
+    def serialize(self, vial_protocol):
+        out = b""
+        for text_stroke in compile_text(self.text, self.layout):
+            if len(text_stroke.modifiers) == 1 and vial_protocol >= VIAL_PROTOCOL_EXT_MACROS:
+                modified = self._modified_keycode(text_stroke.modifiers[0], text_stroke.keycode)
+                out += ActionTap([modified]).serialize(vial_protocol)
+            else:
+                if text_stroke.modifiers:
+                    out += ActionDown(list(text_stroke.modifiers)).serialize(vial_protocol)
+                out += ActionTap([text_stroke.keycode]).serialize(vial_protocol)
+                if text_stroke.modifiers:
+                    out += ActionUp(list(reversed(text_stroke.modifiers))).serialize(vial_protocol)
+
+            if text_stroke.trailing_keycodes:
+                out += ActionTap(list(text_stroke.trailing_keycodes)).serialize(vial_protocol)
+        return out
+
+    def save(self):
+        return super().save() + [self.layout, self.text]
+
+    def restore(self, act):
+        super().restore(act)
+        self.layout = act[1]
+        self.text = act[2]
+
+    def __eq__(self, other):
+        return super().__eq__(other) and self.text == other.text and self.layout == other.layout
+
+    def __repr__(self):
+        return "{}<{}, {}>".format(self.tag, self.layout, self.text)

@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QPushButton, QGridLayout, QHBoxLayout, QToolButton, 
 
 from keycodes.keycodes import Keycode
 from macro.macro_action import ActionTap
-from macro.macro_action_ui import ActionTextUI, ActionTapUI, ui_action, tag_to_action
+from macro.macro_action_ui import ActionExactTextUI, ActionTapUI, ui_action, tag_to_action
 from macro.macro_line import MacroLine
 from protocol.constants import VIAL_PROTOCOL_EXT_MACROS
 from tabbed_keycodes import keycode_filter_masked
@@ -87,7 +87,7 @@ class MacroTab(QVBoxLayout):
         self.changed.emit()
 
     def on_add(self):
-        self.add_action(ActionTextUI(self.container))
+        self.add_action(ActionExactTextUI(self.container))
 
     def on_remove(self, obj):
         for line in self.lines:

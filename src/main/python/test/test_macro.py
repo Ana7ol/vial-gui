@@ -3,9 +3,10 @@ import unittest
 
 from protocol.dummy_keyboard import DummyKeyboard
 from keycodes.keycodes import Keycode, recreate_keyboard_keycodes
-from macro.macro_action import ActionTap, ActionDown, ActionText, ActionDelay, ActionUp
+from macro.macro_action import ActionTap, ActionDown, ActionText, ActionExactText, ActionDelay, ActionUp
 from macro.macro_key import KeyDown, KeyTap, KeyUp, KeyString
 from macro.macro_optimizer import macro_optimize, remove_repeats, replace_with_tap, replace_with_string
+from macro.text_encoder import GERMAN_TEXT_MAP, MacroTextEncodingError, compile_text, stroke
 
 KC_A = Keycode.find_by_qmk_id("KC_A")
 KC_B = Keycode.find_by_qmk_id("KC_B")
@@ -36,6 +37,33 @@ class TestMacro(unittest.TestCase):
         self.assertEqual(macro_optimize([KeyDown(KC_A), KeyUp(KC_A), KeyDown(KC_B), KeyUp(KC_B)],
                                         use_strings=False),
                          [KeyTap(KC_A), KeyTap(KC_B)])
+
+    def test_german_exact_text_shell_punctuation(self):
+        self.assertEqual(GERMAN_TEXT_MAP["-"], stroke("KC_SLASH"))
+        self.assertEqual(GERMAN_TEXT_MAP[">"], stroke("KC_NONUS_BSLASH", ("KC_LSHIFT",)))
+        self.assertEqual(GERMAN_TEXT_MAP["%"], stroke("KC_5", ("KC_LSHIFT",)))
+        self.assertEqual(GERMAN_TEXT_MAP["\\"], stroke("KC_MINUS", ("KC_RALT",)))
+        self.assertEqual(GERMAN_TEXT_MAP["'"], stroke("KC_NONUS_HASH", ("KC_LSHIFT",)))
+
+        bash = r"printf -v date '%(%Y-%m-%d)T\n' -1"
+        powershell = "Get-Date 'dd.MM.yyyy'"
+        self.assertEqual(len(compile_text(bash)), len(bash))
+        self.assertEqual(len(compile_text(powershell)), len(powershell))
+
+    def test_german_exact_text_serializes_signs_not_us_positions(self):
+        kb = DummyKeyboard(None)
+        kb.vial_protocol = 5
+
+        macro = ActionExactText("- >")
+        self.assertEqual(kb.macro_deserialize(macro.serialize(kb.vial_protocol)), [
+            ActionTap(["KC_SLASH"]),
+            ActionTap(["KC_SPACE"]),
+            ActionTap(["LSFT(KC_NONUS_BSLASH)"]),
+        ])
+
+    def test_german_exact_text_rejects_unrepresentable_character(self):
+        with self.assertRaises(MacroTextEncodingError):
+            compile_text("hello\u2603")
 
     def test_serialize_v1(self):
         kb = DummyKeyboard(None)
@@ -98,6 +126,8 @@ class TestMacro(unittest.TestCase):
         self.assertEqual(tap.save(), ["tap", "CMB_TOG", "KC_B", "KC_A"])
         text = ActionText("Hello world")
         self.assertEqual(text.save(), ["text", "Hello world"])
+        exact_text = ActionExactText("printf -v date")
+        self.assertEqual(exact_text.save(), ["exact-text", "German (QWERTZ)", "printf -v date"])
         delay = ActionDelay(123)
         self.assertEqual(delay.save(), ["delay", 123])
 
@@ -111,6 +141,9 @@ class TestMacro(unittest.TestCase):
         text = ActionText()
         text.restore(["text", "Hello world"])
         self.assertEqual(text, ActionText("Hello world"))
+        exact_text = ActionExactText()
+        exact_text.restore(["exact-text", "German (QWERTZ)", "Get-Date 'dd.MM.yyyy'"])
+        self.assertEqual(exact_text, ActionExactText("Get-Date 'dd.MM.yyyy'"))
         delay = ActionDelay()
         delay.restore(["delay", 123])
         self.assertEqual(delay, ActionDelay(123))

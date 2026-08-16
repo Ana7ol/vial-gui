@@ -39,7 +39,8 @@ fbs run
 #### This fork
 
 - The default Vial GUI keyboard layout is `German (QWERTZ)`.
-- The macro recorder resolves recorded single-character keys through the selected Vial layout, so German `Y`/`Z` recording follows the visible sign instead of US position naming.
+- The macro recorder resolves recorded characters through the selected Vial layout.
+- `Exact text (German)` macros compile shell punctuation to explicit German HID key taps instead of QMK's US send-string table.
 - Quantum keycode definitions are available in the app under `About` -> `Quantum keycode reference...`.
 - Corne v4 firmware capacity notes live in [`docs/corne-v4-vial.md`](docs/corne-v4-vial.md).
 
@@ -55,4 +56,12 @@ On a local machine, install `test-requirements.txt` in the project virtualenv be
 
 #### Public website
 
-This repo includes a GitHub Pages workflow at `.github/workflows/pages.yml`. After pushing to your GitHub `main` branch and enabling Pages with `GitHub Actions` as the source, the public site is deployed from `docs/site`.
+The GitHub Pages workflow compiles this GUI through the pinned upstream
+`vial-kb/vial-web` WebAssembly toolchain. In Chrome or Edge, the Connect
+keyboard button requests the Vial WebHID interface, reads the firmware
+definition, and opens the detected keyboard layout directly in the browser.
+
+GitHub Pages cannot set the COOP/COEP response headers required by Qt's
+threaded WebAssembly build. The site includes a same-origin isolation service
+worker so the public Pages URL can run the configurator after one automatic
+first-visit reload.

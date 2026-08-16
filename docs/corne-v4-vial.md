@@ -2,6 +2,24 @@
 
 This fork defaults Vial GUI to the German QWERTZ display map. That changes how Vial labels and records keys, but the keyboard still sends USB HID key usages. The host operating system layout decides the final character. On a German OS layout, assigning visible `Y` means storing `KC_Z`; assigning visible `Z` means storing `KC_Y`.
 
+## Exact German macros
+
+For commands and scripts, add an `Exact text (German)` macro action. It
+compiles letters, numbers, punctuation, German characters, whitespace, Shift,
+and AltGr combinations into explicit key taps. For example, `-` becomes the
+German minus key (`KC_SLASH`), `>` becomes Shift plus the ISO `<` key, and `\`
+becomes AltGr plus the German `ß` key. This prevents the firmware's US
+send-string table from changing shell syntax after the German OS layout
+interprets it.
+
+`Raw text (QMK/US)` remains available for compatibility with existing macros.
+Use it only when the host layout and firmware send-string table are known to
+match.
+
+Normal USB keyboard HID reports do not carry Unicode characters. For
+predictable output, keep the macro target and host input layout aligned. Exact
+German text intentionally targets a German host layout.
+
 ## Corne v4 target
 
 Corne v4 appears in QMK/Vial trees under CRKBD names such as `crkbd/rev4`, `crkbd/rev4_0/standard`, `crkbd/rev4_0/mini`, `crkbd/rev4_1/standard`, or `crkbd/rev4_1/mini`, depending on the firmware tree. Put the capacity settings below in the Vial keymap's `config.h`, for example:

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#171a18">
+    <title>Vial German | Corne v4 configurator</title>
+    <meta name="description" content="Configure a Vial-compatible Corne v4 in the browser with German QWERTZ defaults and exact shell-safe macros.">
+    <link rel="icon" href="./icon.png" type="image/png">
+    <link rel="stylesheet" href="./styles.css">
+    <script>window.coi = { quiet: true };</script>
+    <script src="./coi-serviceworker.js"></script>
+  </head>
+  <body>
+    <main id="workspace" aria-label="Vial keyboard configurator">
+      <canvas id="canvas" oncontextmenu="return false;" tabindex="-1"></canvas>
+
+      <section id="startup" aria-labelledby="startup_title">
+        <header class="topbar">
+          <a class="brand" href="@REPOSITORY_URL@" target="_blank" rel="noreferrer">
+            <img src="./icon.png" alt="" width="34" height="34">
+            <span>Vial German</span>
+          </a>
+          <div class="layout-badge">
+            <span class="status-dot" aria-hidden="true"></span>
+            German QWERTZ
+          </div>
+        </header>
+
+        <div class="connect-stage">
+          <div class="connect-tool">
+            <p class="product-label">Corne v4 configurator</p>
+            <h1 id="startup_title">Connect your keyboard</h1>
+            <p class="intro">Select your Vial-compatible keyboard. Its firmware definition, physical layout, layer count, and enabled features are read directly from the device.</p>
+
+            <button id="startup_btn" type="button" disabled>
+              <span id="button_label">Preparing Vial</span>
+              <span class="button-indicator" aria-hidden="true"></span>
+            </button>
+            <p id="startup_status" class="startup-status" role="status" aria-live="polite">Starting the secure browser runtime...</p>
+
+            <div id="device_preview" class="device-preview" hidden>
+              <span class="device-label">Selected device</span>
+              <strong id="device_name">Vial keyboard</strong>
+            </div>
+
+            <div id="error" class="error-panel" hidden>
+              <strong>Vial could not start</strong>
+              <p id="error_msg"></p>
+            </div>
+
+            <div class="connection-notes">
+              <span>Chrome or Edge</span>
+              <span>USB connection</span>
+              <span>No account required</span>
+            </div>
+          </div>
+        </div>
+
+        <footer class="startup-footer">
+          <span>Exact macros target German (QWERTZ)</span>
+          <span>Vial @VIAL_VER_SHORT@ · Web @WEB_VER_SHORT@</span>
+        </footer>
+      </section>
+
+      <section id="unlock" hidden>
+        <div id="unlock_inner" class="unlock-tool">
+          <p class="product-label">Security check</p>
+          <h2>Unlock this keyboard</h2>
+          <p>Hold the highlighted keys on your keyboard until the progress bar completes.</p>
+          <div class="unlock-keyboard"><img id="unlock_img" alt="Keys to hold for Vial unlock"></div>
+          <progress id="unlock_status" value="0" max="1"></progress>
+          <p class="unlock-note">Unplug the keyboard or choose Security > Lock when you are finished.</p>
+        </div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+    <script>
+      loadVialRuntime("./main-@UNIQVER@.js");
+    </script>
+  </body>
+</html>
