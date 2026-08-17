@@ -93,3 +93,49 @@ def compile_text(text, layout=GERMAN_TEXT_LAYOUT):
             raise MacroTextEncodingError(character, position, layout)
         out.append(GERMAN_TEXT_MAP[character])
     return out
+
+
+def stroke_keycodes(text_stroke):
+    """Return the QMK keycodes used by protocol-v5 macros for one character."""
+    keycode = text_stroke.keycode
+    if text_stroke.modifiers:
+        wrappers = {
+            "KC_LSHIFT": "LSFT({})",
+            "KC_RALT": "RALT({})",
+        }
+        if len(text_stroke.modifiers) != 1 or text_stroke.modifiers[0] not in wrappers:
+            return None
+        keycode = wrappers[text_stroke.modifiers[0]].format(keycode)
+    return (keycode,) + text_stroke.trailing_keycodes
+
+
+def _german_keycode_sequences():
+    sequences = {}
+    for character, text_stroke in GERMAN_TEXT_MAP.items():
+        sequence = stroke_keycodes(text_stroke)
+        if sequence is not None:
+            # Newline and carriage return share KC_ENTER. Prefer the normalized newline.
+            sequences.setdefault(sequence, character)
+    return sorted(sequences.items(), key=lambda item: len(item[0]), reverse=True)
+
+
+GERMAN_KEYCODE_SEQUENCES = _german_keycode_sequences()
+
+
+def decode_keycodes(keycodes, layout=GERMAN_TEXT_LAYOUT):
+    """Decode German protocol-v5 tap keycodes back into literal text."""
+    if layout != GERMAN_TEXT_LAYOUT:
+        raise ValueError("Unsupported exact-text layout: {}".format(layout))
+
+    keycodes = tuple(keycodes)
+    text = []
+    position = 0
+    while position < len(keycodes):
+        for sequence, character in GERMAN_KEYCODE_SEQUENCES:
+            if keycodes[position:position + len(sequence)] == sequence:
+                text.append(character)
+                position += len(sequence)
+                break
+        else:
+            return None
+    return "".join(text)

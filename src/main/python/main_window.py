@@ -88,7 +88,7 @@ class MainWindow(QMainWindow):
         self.rgb_configurator = RGBConfigurator()
 
         self.editors = [(self.keymap_editor, "Keymap"), (self.layout_editor, "Layout"), (self.macro_recorder, "Macros"),
-                        (self.rgb_configurator, "Lighting"), (self.tap_dance, "Tap Dance"), (self.combos, "Combos"),
+                        (self.rgb_configurator, "LEDs"), (self.tap_dance, "Tap Dance"), (self.combos, "Combos"),
                         (self.key_override, "Key Overrides"), (self.alt_repeat_key, "Alt Repeat Key"),
                         (self.qmk_settings, "QMK Settings"), (self.matrix_tester, "Matrix tester"),
                         (self.firmware_flasher, "Firmware updater")]
@@ -242,7 +242,7 @@ class MainWindow(QMainWindow):
 
         about_vial_act = QAction(tr("MenuAbout", "About Vial..."), self)
         about_vial_act.triggered.connect(self.about_vial)
-        quantum_reference_act = QAction(tr("MenuAbout", "Quantum keycode reference..."), self)
+        quantum_reference_act = QAction(tr("MenuAbout", "Quantum keycode guide..."), self)
         quantum_reference_act.triggered.connect(self.quantum_keycode_reference)
         self.about_keyboard_act = QAction("", self)
         self.about_keyboard_act.triggered.connect(self.about_keyboard)

@@ -1,6 +1,6 @@
 # Quantum Keycode Reference
 
-Vial GUI now includes an in-app reference at `About -> Quantum keycode reference...`. It is generated from the same keycode definitions used by the Quantum tab, so it stays aligned with labels, QMK IDs, aliases, and tooltips.
+Vial GUI includes a searchable in-app reference at `About -> Quantum keycode guide...` and a public `quantum.html` guide beside the web configurator. Both are generated from the same keycode definitions used by the Quantum tab, so labels, QMK IDs, aliases, feature requirements, and hover tooltips stay aligned.
 
 ## How to read the Quantum tab
 

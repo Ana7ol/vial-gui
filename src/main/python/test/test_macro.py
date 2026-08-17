@@ -6,7 +6,8 @@ from keycodes.keycodes import Keycode, recreate_keyboard_keycodes
 from macro.macro_action import ActionTap, ActionDown, ActionText, ActionExactText, ActionDelay, ActionUp
 from macro.macro_key import KeyDown, KeyTap, KeyUp, KeyString
 from macro.macro_optimizer import macro_optimize, remove_repeats, replace_with_tap, replace_with_string
-from macro.text_encoder import GERMAN_TEXT_MAP, MacroTextEncodingError, compile_text, stroke
+from macro.text_encoder import GERMAN_TEXT_MAP, MacroTextEncodingError, compile_text, decode_keycodes, \
+    stroke, stroke_keycodes
 
 KC_A = Keycode.find_by_qmk_id("KC_A")
 KC_B = Keycode.find_by_qmk_id("KC_B")
@@ -50,16 +51,31 @@ class TestMacro(unittest.TestCase):
         self.assertEqual(len(compile_text(bash)), len(bash))
         self.assertEqual(len(compile_text(powershell)), len(powershell))
 
+    def test_german_exact_text_decodes_literal_symbols(self):
+        self.assertEqual(decode_keycodes(["RALT(KC_NONUS_BSLASH)"]), "|")
+        self.assertEqual(decode_keycodes(["RALT(KC_MINUS)"]), "\\")
+        self.assertEqual(decode_keycodes(["KC_SLASH", "LSFT(KC_NONUS_BSLASH)"]), "->")
+
+    def test_german_exact_text_codec_round_trip(self):
+        text = "".join(character for character in GERMAN_TEXT_MAP if character != "\r")
+        keycodes = []
+        for text_stroke in compile_text(text):
+            keycodes.extend(stroke_keycodes(text_stroke))
+        self.assertEqual(decode_keycodes(keycodes), text)
+
     def test_german_exact_text_serializes_signs_not_us_positions(self):
         kb = DummyKeyboard(None)
         kb.vial_protocol = 5
 
         macro = ActionExactText("- >")
-        self.assertEqual(kb.macro_deserialize(macro.serialize(kb.vial_protocol)), [
-            ActionTap(["KC_SLASH"]),
-            ActionTap(["KC_SPACE"]),
-            ActionTap(["LSFT(KC_NONUS_BSLASH)"]),
-        ])
+        self.assertEqual(kb.macro_deserialize(macro.serialize(kb.vial_protocol)), [ActionExactText("- >")])
+
+    def test_german_exact_text_survives_keyboard_reload(self):
+        kb = DummyKeyboard(None)
+        kb.vial_protocol = 5
+        text = "printf -v date '%(%Y-%m-%d)T\\n' -1 | sed 's/-/>/'"
+        data = kb.macro_serialize([ActionExactText(text)])
+        self.assertEqual(kb.macro_deserialize(data), [ActionExactText(text)])
 
     def test_german_exact_text_rejects_unrepresentable_character(self):
         with self.assertRaises(MacroTextEncodingError):

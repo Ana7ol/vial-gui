@@ -1,12 +1,14 @@
 import struct
 
 from keycodes.keycodes import Keycode
-from macro.macro_action import SS_TAP_CODE, SS_DOWN_CODE, SS_UP_CODE, ActionText, ActionTap, ActionDown, ActionUp, \
-    SS_QMK_PREFIX, SS_DELAY_CODE, ActionDelay, VIAL_MACRO_EXT_TAP, VIAL_MACRO_EXT_DOWN, VIAL_MACRO_EXT_UP
+from macro.macro_action import SS_TAP_CODE, SS_DOWN_CODE, SS_UP_CODE, ActionText, ActionExactText, ActionTap, \
+    ActionDown, ActionUp, SS_QMK_PREFIX, SS_DELAY_CODE, ActionDelay, VIAL_MACRO_EXT_TAP, VIAL_MACRO_EXT_DOWN, \
+    VIAL_MACRO_EXT_UP
 from macro.macro_action_ui import tag_to_action
+from macro.text_encoder import decode_keycodes
 from protocol.base_protocol import BaseProtocol
 from protocol.constants import CMD_VIA_MACRO_GET_COUNT, CMD_VIA_MACRO_GET_BUFFER_SIZE, CMD_VIA_MACRO_GET_BUFFER, \
-    CMD_VIA_MACRO_SET_BUFFER, BUFFER_FETCH_CHUNK, VIAL_PROTOCOL_ADVANCED_MACROS
+    CMD_VIA_MACRO_SET_BUFFER, BUFFER_FETCH_CHUNK, VIAL_PROTOCOL_ADVANCED_MACROS, VIAL_PROTOCOL_EXT_MACROS
 from unlocker import Unlocker
 from util import chunks
 
@@ -135,6 +137,19 @@ def macro_deserialize_v2(data):
     return out
 
 
+def restore_exact_text(actions):
+    """Turn German tap sequences back into the literal text shown in the editor."""
+    restored = []
+    for action in actions:
+        if isinstance(action, ActionTap):
+            text = decode_keycodes(action.sequence)
+            if text:
+                restored.append(ActionExactText(text))
+                continue
+        restored.append(action)
+    return restored
+
+
 class ProtocolMacro(BaseProtocol):
 
     def reload_macros_early(self):
@@ -218,7 +233,10 @@ class ProtocolMacro(BaseProtocol):
         Deserialize a single macro
         """
         if self.vial_protocol >= VIAL_PROTOCOL_ADVANCED_MACROS:
-            return macro_deserialize_v2(data)
+            actions = macro_deserialize_v2(data)
+            if self.vial_protocol >= VIAL_PROTOCOL_EXT_MACROS:
+                return restore_exact_text(actions)
+            return actions
         return macro_deserialize_v1(data)
 
     def macros_serialize(self, macros):

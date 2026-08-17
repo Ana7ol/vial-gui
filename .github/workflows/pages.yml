@@ -67,10 +67,15 @@ jobs:
         REPOSITORY_URL: https://github.com/${{ github.repository }}
         GUI_VERSION: ${{ github.sha }}
       run: |
+        python3 vial-gui/util/export_quantum_reference.py vial-gui/src/main/python/keycodes/keycodes.py vial-gui/web/quantum-data.js
         cp vial-gui/web/index.html src/index.html
         cp vial-gui/web/styles.css src/styles.css
         cp vial-gui/web/app.js src/app.js
         cp vial-gui/web/coi-serviceworker.js src/coi-serviceworker.js
+        cp vial-gui/web/quantum.html src/quantum.html
+        cp vial-gui/web/quantum.js src/quantum.js
+        cp vial-gui/web/quantum-data.js src/quantum-data.js
+        cp vial-gui/web/corne-icon.png src/icon.png
         sed -i "s|@REPOSITORY_URL@|${REPOSITORY_URL}|g" src/index.html
         sed -i "s|@VIAL_VER_SHORT@|${GUI_VERSION:0:7}|g" src/index.html
         sed -i "s|@WEB_VER_SHORT@|3749f8d|g" src/index.html
@@ -82,6 +87,10 @@ jobs:
         cp styles.css build/styles.css
         cp app.js build/app.js
         cp coi-serviceworker.js build/coi-serviceworker.js
+        cp quantum.html build/quantum.html
+        cp quantum.js build/quantum.js
+        cp quantum-data.js build/quantum-data.js
+        cp icon.png build/icon.png
         mkdir -p build/docs
         cp ../vial-gui/docs/corne-v4-vial.md build/docs/corne-v4-vial.md
         cp ../vial-gui/docs/quantum-keycodes.md build/docs/quantum-keycodes.md

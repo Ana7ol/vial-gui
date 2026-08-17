@@ -11,7 +11,8 @@ class MacroLine(QObject):
 
     changed = pyqtSignal()
 
-    types = ["Exact text (German)", "Raw text (QMK/US)", "Down", "Up", "Tap"]
+    types = ["Literal text (German)", "Advanced: raw QMK/US text", "Advanced: key down", "Advanced: key up",
+             "Advanced: key tap"]
     type_to_cls = [ActionExactTextUI, ActionTextUI, ActionDownUI, ActionUpUI, ActionTapUI]
 
     def __init__(self, parent, action):

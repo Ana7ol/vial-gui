@@ -56,7 +56,7 @@ class MacroTab(QVBoxLayout):
         self.btn_tap_enter.clicked.connect(self.on_tap_enter)
 
         self.btn_text_window = QToolButton()
-        self.btn_text_window.setText(tr("MacroRecorder", "Open Text Editor..."))
+        self.btn_text_window.setText(tr("MacroRecorder", "Advanced JSON..."))
         self.btn_text_window.setToolButtonStyle(Qt.ToolButtonTextOnly)
         self.btn_text_window.clicked.connect(self.on_text_window)
 
@@ -120,7 +120,7 @@ class MacroTab(QVBoxLayout):
         self.changed.emit()
 
     def on_text_window(self):
-        # serialize all actions in this tab to a json
+        # Serialize all actions for expert editing and compatibility workflows.
         macro_text = json.dumps([act.save() for act in self.actions()])
 
         self.dlg_textbox = TextboxWindow(macro_text, "vim", "Vial macro")
@@ -149,6 +149,8 @@ class MacroTab(QVBoxLayout):
                     actionUI = ui_action[type(obj)]
                     obj.restore(act)
                     self.add_action(actionUI(self.container, obj))
+            if not self.lines:
+                self.add_action(ActionExactTextUI(self.container))
 
     def on_change(self):
         self.changed.emit()

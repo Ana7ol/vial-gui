@@ -91,9 +91,9 @@ a:focus-visible {
 }
 
 .brand img {
-  width: 34px;
+  width: 46px;
   height: 34px;
-  object-fit: contain;
+  object-fit: fill;
 }
 
 .layout-badge {
@@ -102,6 +102,23 @@ a:focus-visible {
   gap: 8px;
   color: #d8ddd9;
   font-size: 13px;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.guide-link {
+  color: var(--accent-strong);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.guide-link:hover {
+  color: var(--amber);
 }
 
 .status-dot {
@@ -351,7 +368,7 @@ h2 {
   }
 
   .layout-badge {
-    font-size: 12px;
+    display: none;
   }
 
   .connect-stage {
@@ -382,6 +399,126 @@ h2 {
 
   .device-preview strong {
     text-align: left;
+  }
+}
+
+.reference-page {
+  min-width: 320px;
+  overflow: auto;
+  background: #121513;
+}
+
+.reference-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  min-height: 64px;
+  border-bottom: 1px solid var(--line);
+}
+
+.reference-main {
+  width: min(980px, calc(100% - 36px));
+  margin: 0 auto;
+  padding: 52px 0 80px;
+}
+
+.reference-heading {
+  max-width: 720px;
+  margin-bottom: 30px;
+}
+
+.reference-heading p:not(.product-label) {
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.search-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #dce2dd;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+#keycode_search {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid #4a524c;
+  border-radius: 5px;
+  color: var(--ink);
+  background: #101311;
+  font: inherit;
+}
+
+#keycode_search:focus {
+  border-color: var(--accent);
+  outline: 2px solid rgba(121, 212, 154, 0.2);
+  outline-offset: 2px;
+}
+
+.result-count {
+  margin: 10px 0 36px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.keycode-group {
+  margin-top: 42px;
+}
+
+.keycode-group h2 {
+  margin: 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+  color: var(--amber);
+  font-size: 18px;
+}
+
+.keycode-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 36%) minmax(0, 1fr);
+  gap: 28px;
+  padding: 18px 10px;
+  border-bottom: 1px solid #303631;
+}
+
+.keycode-id code {
+  color: var(--accent-strong);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  overflow-wrap: anywhere;
+}
+
+.keycode-copy h3 {
+  margin: 0 0 5px;
+  font-size: 14px;
+}
+
+.keycode-copy p {
+  margin: 0;
+  color: #b7c0ba;
+  line-height: 1.5;
+}
+
+.keycode-copy small {
+  display: block;
+  margin-top: 7px;
+  color: #879089;
+  line-height: 1.4;
+}
+
+@media (max-width: 680px) {
+  .reference-main {
+    width: min(100% - 28px, 980px);
+    padding-top: 34px;
+  }
+
+  .keycode-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    padding-left: 2px;
+    padding-right: 2px;
   }
 }
 

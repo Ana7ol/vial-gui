@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#171a18">
+    <title>Quantum keycode guide | Vial German</title>
+    <meta name="description" content="Search every Quantum keycode available in Vial German and learn what it does.">
+    <link rel="icon" href="./icon.png" type="image/png">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body class="reference-page">
+    <header class="topbar reference-topbar">
+      <a class="brand" href="./">
+        <img src="./icon.png" alt="" width="34" height="34">
+        <span>Vial German</span>
+      </a>
+      <a class="guide-link" href="./">Back to configurator</a>
+    </header>
+
+    <main class="reference-main">
+      <div class="reference-heading">
+        <p class="product-label">Corne v4 reference</p>
+        <h1>Quantum keycode guide</h1>
+        <p>These are the special QMK functions shown in the Quantum tray. Firmware-dependent keys only work when the connected keyboard includes that feature.</p>
+      </div>
+
+      <label class="search-label" for="keycode_search">Search keycodes</label>
+      <input id="keycode_search" type="search" placeholder="Name, QMK ID, alias, or purpose" autocomplete="off">
+      <p id="result_count" class="result-count" aria-live="polite"></p>
+      <div id="keycode_sections" class="keycode-sections"></div>
+    </main>
+
+    <script src="./quantum-data.js"></script>
+    <script src="./quantum.js"></script>
+  </body>
+</html>

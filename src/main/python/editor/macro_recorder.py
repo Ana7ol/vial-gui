@@ -4,7 +4,7 @@ import sys
 from PyQt5.QtWidgets import QPushButton, QHBoxLayout, QWidget, QLabel
 
 from editor.basic_editor import BasicEditor
-from macro.macro_action import ActionText, ActionTap, ActionDown, ActionUp
+from macro.macro_action import ActionText, ActionExactText, ActionTap, ActionDown, ActionUp
 from macro.macro_action_ui import ui_action
 from macro.macro_key import KeyString, KeyDown, KeyUp, KeyTap
 from macro.macro_optimizer import macro_optimize
@@ -175,6 +175,8 @@ class MacroRecorder(BasicEditor):
             tab.clear()
             for act in macro:
                 tab.add_action(ui_action[type(act)](tab.container, act))
+            if not macro:
+                tab.add_action(ui_action[ActionExactText](tab.container, ActionExactText()))
         self.suppress_change = False
 
     def on_revert(self):

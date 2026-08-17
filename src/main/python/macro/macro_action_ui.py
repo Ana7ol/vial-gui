@@ -1,5 +1,5 @@
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
-from PyQt5.QtWidgets import QLineEdit, QToolButton, QWidget, QSizePolicy, QSpinBox
+from PyQt5.QtWidgets import QLineEdit, QPlainTextEdit, QToolButton, QWidget, QSizePolicy, QSpinBox
 
 from constants import KEY_SIZE_RATIO
 from tabbed_keycodes import TabbedKeycodes
@@ -62,13 +62,35 @@ class ActionTextUI(BasicActionUI):
         self.changed.emit()
 
 
-class ActionExactTextUI(ActionTextUI):
+class ActionExactTextUI(BasicActionUI):
 
     actcls = ActionExactText
 
     def __init__(self, container, act=None):
         super().__init__(container, act)
-        self.text.setToolTip("Compiles characters to German QWERTZ key taps so shell punctuation stays exact")
+        self.text = QPlainTextEdit()
+        self.text.setObjectName("literalMacroEditor")
+        self.text.setPlainText(self.act.text)
+        self.text.setTabChangesFocus(True)
+        self.text.setMinimumHeight(92)
+        self.text.setMaximumHeight(180)
+        self.text.setToolTip(
+            "Literal German QWERTZ text. Characters such as |, \\, -, >, quotes, and newlines are preserved."
+        )
+        self.text.textChanged.connect(self.on_change)
+
+    def insert(self, row):
+        self.container.addWidget(self.text, row, 2)
+
+    def remove(self):
+        self.container.removeWidget(self.text)
+
+    def delete(self):
+        self.text.deleteLater()
+
+    def on_change(self):
+        self.act.text = self.text.toPlainText()
+        self.changed.emit()
 
 
 class ActionSequenceUI(BasicActionUI):

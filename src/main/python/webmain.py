@@ -10,6 +10,7 @@ import sys
 import json
 
 from main_window import MainWindow
+from themes import CORNE_WEB_STYLESHEET
 
 
 # http://timlehr.com/python-exception-hooks-with-qt-message-box/
@@ -70,6 +71,7 @@ def main(app):
     # Not sure of the best way to do this.
     global window
     window = MainWindow(app)
+    app.setStyleSheet(CORNE_WEB_STYLESHEET)
     window.show()
 
     app.processEvents()
