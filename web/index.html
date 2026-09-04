@@ -66,6 +66,111 @@
         </footer>
       </section>
 
+      <button id="diagnostics_toggle" class="diagnostics-toggle" type="button" aria-controls="diagnostics_panel" aria-expanded="false">
+        <span id="diagnostics_toggle_dot" class="diagnostics-toggle-dot" data-state="idle" aria-hidden="true"></span>
+        USB diagnostics
+      </button>
+
+      <section id="connection_notice" class="connection-notice" role="alert" hidden>
+        <div>
+          <strong id="connection_notice_title">Keyboard disconnected</strong>
+          <p id="connection_notice_text">Reconnect the cable, then restart the keyboard session when you are ready.</p>
+        </div>
+        <div class="connection-notice-actions">
+          <button id="notice_diagnostics_btn" class="button-secondary" type="button">View diagnostics</button>
+          <button id="notice_reconnect_btn" class="button-primary" type="button">Reconnect</button>
+        </div>
+      </section>
+
+      <div id="diagnostics_backdrop" class="diagnostics-backdrop" hidden></div>
+      <aside id="diagnostics_panel" class="diagnostics-panel" aria-labelledby="diagnostics_title" hidden>
+        <header class="diagnostics-header">
+          <div>
+            <p class="product-label">Corne reliability</p>
+            <h2 id="diagnostics_title">USB diagnostics</h2>
+          </div>
+          <button id="diagnostics_close" class="icon-button" type="button" aria-label="Close diagnostics">×</button>
+        </header>
+
+        <div class="diagnostics-body">
+          <section id="diagnostics_status_card" class="diagnostics-status-card" data-state="idle" aria-live="polite">
+            <span class="diagnostics-status-dot" aria-hidden="true"></span>
+            <div>
+              <strong id="diagnostics_connection">Not connected</strong>
+              <p id="diagnostics_connection_detail">Connect a keyboard to capture its WebHID descriptor and protocol.</p>
+            </div>
+            <button id="diagnostics_reconnect_btn" class="button-secondary compact-button" type="button" disabled>Reconnect</button>
+          </section>
+
+          <section class="diagnostics-section" aria-labelledby="device_details_title">
+            <div class="section-heading-row">
+              <h3 id="device_details_title">Device and protocol</h3>
+              <span class="read-only-badge">Read only</span>
+            </div>
+            <dl class="diagnostics-facts">
+              <div><dt>Product</dt><dd id="diagnostics_product">—</dd></div>
+              <div><dt>USB IDs</dt><dd id="diagnostics_ids">—</dd></div>
+              <div><dt>Vial HID usage</dt><dd id="diagnostics_usage">—</dd></div>
+              <div><dt>Reports</dt><dd id="diagnostics_reports">—</dd></div>
+              <div><dt>VIA protocol</dt><dd id="diagnostics_via_protocol">—</dd></div>
+              <div><dt>Vial protocol</dt><dd id="diagnostics_vial_protocol">—</dd></div>
+            </dl>
+          </section>
+
+          <section class="diagnostics-section" aria-labelledby="communication_check_title">
+            <h3 id="communication_check_title">Communication check</h3>
+            <p class="diagnostics-copy">Sends three read-only protocol-version requests. The check stops after three replies, the first error, or 3 seconds.</p>
+            <div class="communication-row">
+              <button id="communication_check_btn" class="button-primary" type="button" disabled>Run 3-sample check</button>
+              <p id="communication_check_result" class="communication-result" role="status">Connect the keyboard first.</p>
+            </div>
+          </section>
+
+          <section class="diagnostics-section" aria-labelledby="macro_safety_title">
+            <div class="section-heading-row">
+              <h3 id="macro_safety_title">Macro safety</h3>
+              <span class="read-only-badge">No macro text retained</span>
+            </div>
+            <p class="diagnostics-copy">Every .vil file is checked for unmatched key-down and key-up actions before it is loaded.</p>
+            <p id="macro_safety_result" class="macro-safety-result" data-state="idle" role="status">A .vil file is checked before it is sent to the keyboard.</p>
+          </section>
+
+          <section class="diagnostics-section" aria-labelledby="ab_checklist_title">
+            <h3 id="ab_checklist_title">Direct vs dock/cable A/B</h3>
+            <p class="diagnostics-copy">Change one part at a time and run the same 10-minute typing test after each step.</p>
+            <ol class="ab-checklist">
+              <li><label><input type="checkbox" data-check-id="direct_straight"> Direct to the computer with a known-good straight USB data cable.</label></li>
+              <li><label><input type="checkbox" data-check-id="dock_straight"> Same straight cable through the Anker dock; compare event and timeout counts.</label></li>
+              <li><label><input type="checkbox" data-check-id="dock_curly"> Same dock and port, but swap only to the curly USB-A → USB-C cable.</label></li>
+              <li><label><input type="checkbox" data-check-id="direct_curly"> Curly cable direct, if the connectors permit it; this separates cable from dock.</label></li>
+            </ol>
+          </section>
+
+          <section class="diagnostics-section" aria-labelledby="event_log_title">
+            <div class="section-heading-row">
+              <div>
+                <h3 id="event_log_title">Connection event trail</h3>
+                <p id="event_log_count" class="event-log-count">0 retained events</p>
+              </div>
+              <button id="clear_diagnostics_btn" class="text-button" type="button">Clear</button>
+            </div>
+            <ol id="diagnostics_event_log" class="diagnostics-event-log">
+              <li class="empty-event">No events captured yet.</li>
+            </ol>
+          </section>
+
+          <section class="diagnostics-section report-section" aria-labelledby="report_title">
+            <h3 id="report_title">Shareable report</h3>
+            <p class="diagnostics-copy">Includes browser/device metadata, the checklist, check results, and the bounded event trail. It does not include typed keys or raw report payloads.</p>
+            <div class="report-actions">
+              <button id="copy_report_btn" class="button-secondary" type="button">Copy JSON</button>
+              <button id="download_report_btn" class="button-secondary" type="button">Download JSON</button>
+            </div>
+            <p id="report_status" class="report-status" role="status" aria-live="polite"></p>
+          </section>
+        </div>
+      </aside>
+
       <section id="unlock" hidden>
         <div id="unlock_inner" class="unlock-tool">
           <p class="product-label">Security check</p>
@@ -78,6 +183,7 @@
       </section>
     </main>
 
+    <script src="./diagnostics.js"></script>
     <script src="./app.js"></script>
     <script>
       loadVialRuntime("./main-@UNIQVER@.js");
