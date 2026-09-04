@@ -8,6 +8,8 @@ from PyQt5.QtWidgets import QVBoxLayout, QCheckBox, QGridLayout, QLabel, QWidget
     QHBoxLayout, QPushButton, QMessageBox
 
 from editor.basic_editor import BasicEditor
+from editor.modifier_profiles import CUSTOM_PROFILE, MACOS_PROFILE, WINDOWS_LINUX_PROFILE, \
+    detect_modifier_profile, modifier_profile_value
 from protocol.constants import VIAL_PROTOCOL_QMK_SETTINGS
 from util import tr
 from vial_device import VialKeyboard
@@ -96,9 +98,14 @@ class IntegerOption(GenericOption):
 
 class QmkSettings(BasicEditor):
 
+    MAGIC_QSID = 21
+
     def __init__(self):
         super().__init__()
         self.keyboard = None
+        self.btn_profile_windows = None
+        self.btn_profile_macos = None
+        self.lbl_profile_status = None
 
         self.tabs_widget = QTabWidget()
         self.addWidget(self.tabs_widget)
@@ -117,6 +124,88 @@ class QmkSettings(BasicEditor):
 
         self.tabs = []
         self.misc_widgets = []
+
+    def add_modifier_profile_controls(self, container):
+        title = QLabel(tr("QmkSettings", "OS modifier profile"))
+        title.setObjectName("sectionTitle")
+        container.addWidget(title, container.rowCount(), 0, 1, 2)
+
+        explanation = QLabel(tr(
+            "QmkSettings",
+            "macOS changes both Control positions to Command. Alt is already Option on a Mac. "
+            "This includes Control home-row holds; macro contents stay unchanged because Windows commands "
+            "do not have a safe one-to-one macOS translation."
+        ))
+        explanation.setWordWrap(True)
+        explanation.setMaximumWidth(560)
+        container.addWidget(explanation, container.rowCount(), 0, 1, 2)
+
+        buttons = QHBoxLayout()
+        self.btn_profile_windows = QPushButton(tr("QmkSettings", "Windows / Linux"))
+        self.btn_profile_macos = QPushButton(tr("QmkSettings", "macOS"))
+        for button in (self.btn_profile_windows, self.btn_profile_macos):
+            button.setObjectName("osProfileButton")
+            button.setCheckable(True)
+            buttons.addWidget(button)
+        buttons.addStretch()
+        self.btn_profile_windows.clicked.connect(
+            lambda _checked=False: self.stage_modifier_profile(WINDOWS_LINUX_PROFILE))
+        self.btn_profile_macos.clicked.connect(
+            lambda _checked=False: self.stage_modifier_profile(MACOS_PROFILE))
+        container.addLayout(buttons, container.rowCount(), 0, 1, 2)
+
+        self.lbl_profile_status = QLabel()
+        self.lbl_profile_status.setWordWrap(True)
+        container.addWidget(self.lbl_profile_status, container.rowCount(), 0, 1, 2)
+
+        divider = QLabel(tr("QmkSettings", "Advanced Magic options"))
+        divider.setObjectName("sectionTitle")
+        container.addWidget(divider, container.rowCount(), 0, 1, 2)
+
+    def stage_modifier_profile(self, profile):
+        current_value = self.prepare_settings().get(
+            self.MAGIC_QSID, self.keyboard.settings.get(self.MAGIC_QSID, 0))
+        target_value = modifier_profile_value(current_value, profile)
+
+        for tab in self.tabs:
+            for option in tab:
+                if isinstance(option, BooleanOption) and option.qsid == self.MAGIC_QSID:
+                    option.checkbox.blockSignals(True)
+                    option.checkbox.setChecked(bool(target_value & (1 << option.qsid_bit)))
+                    option.checkbox.blockSignals(False)
+
+        self.on_change()
+
+    def update_modifier_profile_status(self, qsid_values):
+        if self.lbl_profile_status is None or self.MAGIC_QSID not in qsid_values:
+            return
+
+        value = qsid_values[self.MAGIC_QSID]
+        profile = detect_modifier_profile(value)
+        saved_value = self.keyboard.settings.get(self.MAGIC_QSID, 0)
+        pending = value != saved_value
+
+        self.btn_profile_windows.blockSignals(True)
+        self.btn_profile_macos.blockSignals(True)
+        self.btn_profile_windows.setChecked(profile == WINDOWS_LINUX_PROFILE)
+        self.btn_profile_macos.setChecked(profile == MACOS_PROFILE)
+        self.btn_profile_windows.blockSignals(False)
+        self.btn_profile_macos.blockSignals(False)
+
+        if profile == MACOS_PROFILE:
+            message = tr("QmkSettings", "macOS: Control positions send Command; Alt sends Option; GUI positions send Control.")
+        elif profile == WINDOWS_LINUX_PROFILE:
+            message = tr("QmkSettings", "Windows / Linux: Control, Alt, and GUI keep their standard meanings.")
+        elif profile == CUSTOM_PROFILE:
+            message = tr("QmkSettings", "Custom: the left and right Control/GUI swap settings do not match.")
+        else:
+            message = ""
+
+        if pending:
+            message += " " + tr("QmkSettings", "Choose Save to write this profile to the keyboard.")
+        else:
+            message += " " + tr("QmkSettings", "Saved on the keyboard.")
+        self.lbl_profile_status.setText(message)
 
     def populate_tab(self, tab, container):
         options = []
@@ -147,6 +236,9 @@ class QmkSettings(BasicEditor):
         self.misc_widgets.clear()
         while self.tabs_widget.count() > 0:
             self.tabs_widget.removeTab(0)
+        self.btn_profile_windows = None
+        self.btn_profile_macos = None
+        self.lbl_profile_status = None
 
         # create new GUI
         for tab in self.settings_defs["tabs"]:
@@ -163,6 +255,8 @@ class QmkSettings(BasicEditor):
             w.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
             container = QGridLayout()
             w.setLayout(container)
+            if tab["name"] == "Magic" and self.MAGIC_QSID in self.keyboard.supported_settings:
+                self.add_modifier_profile_controls(container)
             l = QVBoxLayout()
             l.addWidget(w)
             l.setAlignment(w, QtCore.Qt.AlignHCenter)
@@ -200,6 +294,7 @@ class QmkSettings(BasicEditor):
 
         self.btn_save.setEnabled(changed)
         self.btn_undo.setEnabled(changed)
+        self.update_modifier_profile_status(qsid_values)
 
     def rebuild(self, device):
         super().rebuild(device)

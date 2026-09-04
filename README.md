@@ -43,6 +43,7 @@ fbs run
 - Literal text compiles to explicit German HID key taps only when it is written to the firmware; raw QMK text and key down/up/tap actions remain available as advanced options.
 - Quantum keycode definitions are searchable in the app under `About` -> `Quantum keycode guide...`, on the public guide page, and in per-button hover tooltips.
 - The dedicated `LEDs` tab shows the effects, color, brightness, and speed controls supported by the connected firmware.
+- `QMK Settings` -> `Magic` has Windows/Linux and macOS presets. The macOS preset swaps Control with Command on both sides while leaving Alt as Option, including Control home-row holds.
 - Corne v4 firmware capacity notes live in [`docs/corne-v4-vial.md`](docs/corne-v4-vial.md).
 
 #### Testing

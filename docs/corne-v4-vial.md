@@ -2,6 +2,18 @@
 
 This fork defaults Vial GUI to the German QWERTZ display map. That changes how Vial labels and records keys, but the keyboard still sends USB HID key usages. The host operating system layout decides the final character. On a German OS layout, assigning visible `Y` means storing `KC_Z`; assigning visible `Z` means storing `KC_Y`.
 
+## Windows and macOS modifiers
+
+Open **QMK Settings → Magic → OS modifier profile** after connecting the
+keyboard. Select **Windows / Linux** or **macOS**, then choose **Save**.
+
+The macOS preset swaps Control and GUI on both sides, so the Corne's Control
+home-row holds act as Command. USB Alt is already Option on macOS and is left
+unchanged. Existing GUI positions become Control. The preset changes only
+QMK's persistent modifier flags; it does not rewrite layers or private macro
+text. Windows Run or PowerShell macros remain Windows-specific because there
+is no safe automatic macOS translation for their commands.
+
 ## Exact German macros
 
 For commands and scripts, add an `Exact text (German)` macro action. It

@@ -13,7 +13,8 @@ from protocol.constants import CMD_VIA_GET_PROTOCOL_VERSION, CMD_VIA_VIAL_PREFIX
     CMD_VIA_MACRO_GET_BUFFER_SIZE, CMD_VIAL_QMK_SETTINGS_QUERY, CMD_VIAL_DYNAMIC_ENTRY_OP, \
     DYNAMIC_VIAL_GET_NUMBER_OF_ENTRIES, CMD_VIA_KEYMAP_GET_BUFFER, CMD_VIA_MACRO_GET_BUFFER, CMD_VIAL_GET_UNLOCK_STATUS, \
     CMD_VIA_SET_KEYCODE, DYNAMIC_VIAL_COMBO_GET, DYNAMIC_VIAL_COMBO_SET, DYNAMIC_VIAL_TAP_DANCE_GET, \
-    DYNAMIC_VIAL_TAP_DANCE_SET
+    DYNAMIC_VIAL_TAP_DANCE_SET, CMD_VIAL_QMK_SETTINGS_GET, CMD_VIAL_QMK_SETTINGS_SET
+from editor.modifier_profiles import MACOS_PROFILE, WINDOWS_LINUX_PROFILE
 from widgets.square_button import SquareButton
 
 FAKE_KEYBOARD = """
@@ -53,7 +54,7 @@ def mock_enumerate():
 
 class VirtualKeyboard:
 
-    def __init__(self, kbjson, combos=None, tap_dance=None):
+    def __init__(self, kbjson, combos=None, tap_dance=None, qmk_settings=None):
         if combos is None:
             combos = []
         if tap_dance is None:
@@ -78,6 +79,7 @@ class VirtualKeyboard:
 
         self.key_override_entries = 0
         self.alt_repeat_key_entries = 0
+        self.qmk_settings = dict(qmk_settings or {})
 
     def get_keymap_buffer(self):
         output = b""
@@ -129,7 +131,16 @@ class VirtualKeyboard:
         elif msg[1] == CMD_VIAL_GET_UNLOCK_STATUS:
             return struct.pack("<BB", 0, 0)  # TODO we want to test unlocking as well
         elif msg[1] == CMD_VIAL_QMK_SETTINGS_QUERY:
+            if self.qmk_settings:
+                return struct.pack("<H", min(self.qmk_settings)) + b"\xFF" * 30
             return b"\xFF" * 32
+        elif msg[1] == CMD_VIAL_QMK_SETTINGS_GET:
+            qsid = struct.unpack_from("<H", msg, 2)[0]
+            return b"\x00" + self.qmk_settings[qsid].to_bytes(4, byteorder="little")
+        elif msg[1] == CMD_VIAL_QMK_SETTINGS_SET:
+            qsid = struct.unpack_from("<H", msg, 2)[0]
+            self.qmk_settings[qsid] = int.from_bytes(msg[4:8], byteorder="little")
+            return b"\x00"
         elif msg[1] == CMD_VIAL_DYNAMIC_ENTRY_OP:
             return self.vial_cmd_dynamic(msg)
         raise RuntimeError("unknown command for Vial protocol 0x{:02X}".format(msg[1]))
@@ -190,10 +201,10 @@ class FakeAppctx:
 all_mw = []
 
 
-def prepare(qtbot, keyboard_json, combos=None, tap_dance=None):
+def prepare(qtbot, keyboard_json, combos=None, tap_dance=None, qmk_settings=None):
     import hidraw as hid
 
-    vk = VirtualKeyboard(keyboard_json, combos=combos, tap_dance=tap_dance)
+    vk = VirtualKeyboard(keyboard_json, combos=combos, tap_dance=tap_dance, qmk_settings=qmk_settings)
     MockDevice.vk = vk
 
     hid.enumerate = mock_enumerate
@@ -245,6 +256,27 @@ def test_about_keyboard(qtbot):
          '\n'
          'QMK Settings: disabled in firmware\n')
     mw.about_dialog.accept()
+
+
+def test_os_modifier_profile_presets_stage_and_save_qmk_magic_flags(qtbot):
+    mw, vk = prepare(qtbot, FAKE_KEYBOARD, qmk_settings={21: 0x80})
+    settings = mw.qmk_settings
+
+    assert settings.btn_profile_windows.isChecked()
+    assert not settings.btn_profile_macos.isChecked()
+
+    settings.stage_modifier_profile(MACOS_PROFILE)
+    assert settings.btn_profile_macos.isChecked()
+    assert settings.prepare_settings()[21] == 0x380
+    assert settings.btn_save.isEnabled()
+
+    settings.save_settings()
+    assert vk.qmk_settings[21] == 0x380
+    assert not settings.btn_save.isEnabled()
+
+    settings.stage_modifier_profile(WINDOWS_LINUX_PROFILE)
+    assert settings.prepare_settings()[21] == 0x80
+    assert settings.btn_profile_windows.isChecked()
 
 
 def test_key_change(qtbot):

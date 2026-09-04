@@ -343,6 +343,11 @@ QPushButton:pressed, QToolButton:pressed {
     color: #102016;
     background: #a6edbd;
 }
+QPushButton#osProfileButton:checked {
+    border-color: #a6edbd;
+    color: #102016;
+    background: #79d49a;
+}
 QPushButton:disabled, QToolButton:disabled {
     color: #747c76;
     border-color: #343a35;
