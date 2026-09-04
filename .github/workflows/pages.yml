@@ -71,6 +71,7 @@ jobs:
         cp vial-gui/web/index.html src/index.html
         cp vial-gui/web/styles.css src/styles.css
         cp vial-gui/web/app.js src/app.js
+        cp vial-gui/web/diagnostics.js src/diagnostics.js
         cp vial-gui/web/coi-serviceworker.js src/coi-serviceworker.js
         cp vial-gui/web/quantum.html src/quantum.html
         cp vial-gui/web/quantum.js src/quantum.js
@@ -86,6 +87,7 @@ jobs:
         ./build.sh
         cp styles.css build/styles.css
         cp app.js build/app.js
+        cp diagnostics.js build/diagnostics.js
         cp coi-serviceworker.js build/coi-serviceworker.js
         cp quantum.html build/quantum.html
         cp quantum.js build/quantum.js
