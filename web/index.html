@@ -136,9 +136,11 @@
           </section>
 
           <section class="diagnostics-section" aria-labelledby="ab_checklist_title">
-            <h3 id="ab_checklist_title">Direct vs dock/cable A/B</h3>
-            <p class="diagnostics-copy">Change one part at a time and run the same 10-minute typing test after each step.</p>
+            <h3 id="ab_checklist_title">Cable and dock isolation</h3>
+            <p class="diagnostics-copy">Change one part at a time. Disconnect USB power before reseating or replacing the cable between halves.</p>
             <ol class="ab-checklist">
+              <li><label><input type="checkbox" data-check-id="split_reseat_unpowered"> With USB unplugged, fully reseat both inter-half plugs and leave slack at each jack.</label></li>
+              <li><label><input type="checkbox" data-check-id="split_known_good"> Test a short, known-good straight TRRS split cable; verify the remote left half while the right half remains on USB.</label></li>
               <li><label><input type="checkbox" data-check-id="direct_straight"> Direct to the computer with a known-good straight USB data cable.</label></li>
               <li><label><input type="checkbox" data-check-id="dock_straight"> Same straight cable through the Anker dock; compare event and timeout counts.</label></li>
               <li><label><input type="checkbox" data-check-id="dock_curly"> Same dock and port, but swap only to the curly USB-A → USB-C cable.</label></li>
