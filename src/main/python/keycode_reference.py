@@ -104,7 +104,7 @@ class KeycodeReference(QDialog):
             <style>
                 body { color: #eef2ef; background: #171a18; font-size: 14px; }
                 h1 { color: #a6edbd; font-size: 24px; margin-bottom: 6px; }
-                h2 { color: #f2c66d; font-size: 17px; margin-top: 24px; }
+                h2 { color: #a6edbd; font-size: 17px; margin-top: 24px; }
                 p { color: #b7c0ba; line-height: 1.45; }
                 table { width: 100%; border-collapse: collapse; }
                 td { padding: 10px; border-bottom: 1px solid #3a413c; vertical-align: top; }

@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QScrollArea, QFrame
 
 from hidproxy import hid
 from keycodes.keycodes import Keycode
-from keymaps import DEFAULT_KEYMAP
+from keymaps import DEFAULT_KEYMAP, KEYMAP_CHARACTER_KEYCODES, KEYMAP_SELECTION_OVERRIDES
 
 tr = QCoreApplication.translate
 
@@ -170,6 +170,9 @@ def make_scrollable(layout):
 class KeycodeDisplay:
 
     keymap_override = DEFAULT_KEYMAP[1]
+    keymap_name = DEFAULT_KEYMAP[0]
+    selection_overrides = KEYMAP_SELECTION_OVERRIDES.get(DEFAULT_KEYMAP[0], {})
+    character_keycodes = KEYMAP_CHARACTER_KEYCODES.get(DEFAULT_KEYMAP[0], [])
     clients = []
 
     @classmethod
@@ -215,6 +218,11 @@ class KeycodeDisplay:
         return keycode
 
     @classmethod
+    def resolve_selection(cls, code):
+        """Translate a logical Vial symbol for the selected host layout."""
+        return cls.selection_overrides.get(code, code)
+
+    @classmethod
     def display_keycode(cls, widget, code):
         text = cls.get_label(code)
         tooltip = Keycode.tooltip(code)
@@ -239,8 +247,12 @@ class KeycodeDisplay:
             widget.setMaskColor(None)
 
     @classmethod
-    def set_keymap_override(cls, override):
+    def set_keymap_override(cls, override, name=None, selection_overrides=None, character_keycodes=None):
         cls.keymap_override = override
+        if name is not None:
+            cls.keymap_name = name
+        cls.selection_overrides = selection_overrides or {}
+        cls.character_keycodes = character_keycodes or []
         for client in cls.clients:
             client.on_keymap_override()
 
@@ -259,8 +271,8 @@ class KeycodeDisplay:
             qmk_id = widget.keycode.qmk_id
             if qmk_id in KeycodeDisplay.keymap_override:
                 label = KeycodeDisplay.keymap_override[qmk_id]
-                highlight_color = QApplication.palette().color(QPalette.Link).getRgb()
-                widget.setStyleSheet("QPushButton {color: rgb%s;}" % str(highlight_color))
+                highlight_color = QApplication.palette().color(QPalette.Link).name()
+                widget.setStyleSheet("QPushButton {color: %s;}" % highlight_color)
             else:
                 label = widget.keycode.label
                 widget.setStyleSheet("QPushButton {}")

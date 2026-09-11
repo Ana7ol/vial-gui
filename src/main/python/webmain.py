@@ -72,6 +72,8 @@ def main(app):
     global window
     window = MainWindow(app)
     app.setStyleSheet(CORNE_WEB_STYLESHEET)
-    window.show()
+    # The browser canvas is the window. Do not restore a desktop-sized Qt
+    # geometry inside it; that leaves clipped panes and resize flicker.
+    window.showMaximized()
 
     app.processEvents()

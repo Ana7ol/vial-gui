@@ -78,16 +78,47 @@ class AlternativeDisplay(QWidget):
         return len(self.buttons) > 0
 
 
+class LayoutCharacters(QWidget):
+
+    keycode_changed = pyqtSignal(str)
+
+    def __init__(self):
+        super().__init__()
+        self.buttons = []
+        self.key_layout = FlowLayout()
+        self.setLayout(self.key_layout)
+        self.recreate_buttons()
+
+    def recreate_buttons(self):
+        for btn in self.buttons:
+            btn.hide()
+            btn.deleteLater()
+        self.buttons = []
+
+        for label, code in KeycodeDisplay.character_keycodes:
+            btn = SquareButton()
+            btn.setRelSize(KEYCODE_BTN_RATIO)
+            btn.setText(label.replace("&", "&&"))
+            btn.setToolTip("{} · {}".format(KeycodeDisplay.keymap_name, code))
+            btn.clicked.connect(lambda checked, keycode=code: self.keycode_changed.emit(keycode))
+            self.key_layout.addWidget(btn)
+            self.buttons.append(btn)
+
+        self.setVisible(bool(self.buttons))
+
+
 class Tab(QScrollArea):
 
     keycode_changed = pyqtSignal(str)
 
-    def __init__(self, parent, label, alts, prefix_buttons=None):
+    def __init__(self, parent, label, alts, prefix_buttons=None, layout_characters=False):
         super().__init__(parent)
 
         self.label = label
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
+
+        self.layout_characters = LayoutCharacters() if layout_characters else None
 
         self.alternatives = []
         for kb, keys in alts:
@@ -95,6 +126,10 @@ class Tab(QScrollArea):
             alt.keycode_changed.connect(self.keycode_changed)
             self.layout.addWidget(alt)
             self.alternatives.append(alt)
+
+        if self.layout_characters:
+            self.layout_characters.keycode_changed.connect(self.keycode_changed)
+            self.layout.addWidget(self.layout_characters)
 
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -110,6 +145,8 @@ class Tab(QScrollArea):
         self.setVisible(self.has_buttons())
 
     def relabel_buttons(self):
+        if self.layout_characters:
+            self.layout_characters.recreate_buttons()
         for alt in self.alternatives:
             alt.relabel_buttons()
 
@@ -120,15 +157,15 @@ class Tab(QScrollArea):
         return False
 
     def select_alternative(self):
-        # hide everything first
-        for alt in self.alternatives:
-            alt.hide()
-
-        # then display first alternative which fits on screen w/o horizontal scroll
+        # Display the first full keyboard that fits. The final button-only
+        # fallback must remain visible on narrow or rapidly resizing canvases.
+        selected = self.alternatives[-1]
         for alt in self.alternatives:
             if self.width() - self.verticalScrollBar().width() > alt.required_width():
-                alt.show()
+                selected = alt
                 break
+        for alt in self.alternatives:
+            alt.setVisible(alt is selected)
 
     def resizeEvent(self, evt):
         super().resizeEvent(evt)
@@ -165,14 +202,14 @@ class FilteredTabbedKeycodes(QTabWidget):
                 (ansi_80, KEYCODES_SPECIAL + KEYCODES_BASIC_NUMPAD + KEYCODES_SHIFTED),
                 (ansi_70, KEYCODES_SPECIAL + KEYCODES_BASIC_NUMPAD + KEYCODES_BASIC_NAV + KEYCODES_SHIFTED),
                 (None, KEYCODES_SPECIAL + KEYCODES_BASIC + KEYCODES_SHIFTED),
-            ], prefix_buttons=[("Any", -1)]),
+            ], prefix_buttons=[("Any", -1)], layout_characters=True),
             Tab(self, "ISO/JIS", [
                 (iso_100, KEYCODES_SPECIAL + KEYCODES_SHIFTED + KEYCODES_ISO_KR),
                 (iso_80, KEYCODES_SPECIAL + KEYCODES_BASIC_NUMPAD + KEYCODES_SHIFTED + KEYCODES_ISO_KR),
                 (iso_70, KEYCODES_SPECIAL + KEYCODES_BASIC_NUMPAD + KEYCODES_BASIC_NAV + KEYCODES_SHIFTED +
                  KEYCODES_ISO_KR),
                 (None, KEYCODES_ISO),
-            ], prefix_buttons=[("Any", -1)]),
+            ], prefix_buttons=[("Any", -1)], layout_characters=True),
             SimpleTab(self, "Layers", KEYCODES_LAYERS),
             Tab(self, "Quantum", [(mods, (KEYCODES_BOOT + KEYCODES_QUANTUM)),
                                   (mods_narrow, (KEYCODES_BOOT + KEYCODES_QUANTUM)),
@@ -195,7 +232,7 @@ class FilteredTabbedKeycodes(QTabWidget):
         if code == "Any":
             self.anykey.emit()
         else:
-            self.keycode_changed.emit(Keycode.normalize(code))
+            self.keycode_changed.emit(Keycode.normalize(KeycodeDisplay.resolve_selection(code)))
 
     def recreate_keycode_buttons(self):
         prev_tab = self.tabText(self.currentIndex()) if self.currentIndex() >= 0 else ""

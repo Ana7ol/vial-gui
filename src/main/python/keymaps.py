@@ -72,8 +72,28 @@ KEYMAPS = [
 DEFAULT_KEYMAP_NAME = "German (QWERTZ)"
 DEFAULT_KEYMAP = next(keymap for keymap in KEYMAPS if keymap[0] == DEFAULT_KEYMAP_NAME)
 
+KEYMAP_SELECTION_OVERRIDES = {
+    "German (QWERTZ)": german.selection_overrides,
+}
+
+KEYMAP_CHARACTER_KEYCODES = {
+    "German (QWERTZ)": german.character_keycodes,
+}
+
 # make sure that qmk IDs we used are all correct
 for name, keymap in KEYMAPS:
     for qmk_id in keymap.keys():
         if Keycode.find_by_qmk_id(qmk_id) is None:
             raise RuntimeError("Misconfigured - cannot find QMK keycode {}".format(qmk_id))
+
+for name, overrides in KEYMAP_SELECTION_OVERRIDES.items():
+    for source, target in overrides.items():
+        if Keycode.find_by_qmk_id(source) is None:
+            raise RuntimeError("Misconfigured {} selection keycode {}".format(name, source))
+        Keycode.deserialize(target, reraise=True)
+
+for name, characters in KEYMAP_CHARACTER_KEYCODES.items():
+    for label, keycode in characters:
+        if not label:
+            raise RuntimeError("Misconfigured empty character label for {}".format(name))
+        Keycode.deserialize(keycode, reraise=True)

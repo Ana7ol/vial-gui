@@ -20,7 +20,7 @@ from editor.firmware_flasher import FirmwareFlasher
 from editor.key_override import KeyOverride
 from protocol.keyboard_comm import ProtocolError
 from editor.keymap_editor import KeymapEditor
-from keymaps import DEFAULT_KEYMAP_NAME, KEYMAPS
+from keymaps import DEFAULT_KEYMAP_NAME, KEYMAPS, KEYMAP_CHARACTER_KEYCODES, KEYMAP_SELECTION_OVERRIDES
 from editor.layout_editor import LayoutEditor
 from editor.macro_recorder import MacroRecorder
 from editor.qmk_settings import QmkSettings
@@ -45,24 +45,33 @@ class MainWindow(QMainWindow):
         self.ui_lock_count = 0
 
         self.settings = QSettings("Vial", "Vial")
-        if self.settings.value("size", None):
+        if sys.platform != "emscripten" and self.settings.value("size", None):
             self.resize(self.settings.value("size"))
         else:
             self.resize(WINDOW_WIDTH, WINDOW_HEIGHT)
 
         _pos = self.settings.value("pos", None)
         # NOTE: QDesktopWidget is obsolete, but QApplication.screenAt only usable in Qt 5.10+
-        if _pos and qApp.desktop().geometry().contains(QRect(_pos, self.size())):
+        if sys.platform != "emscripten" and _pos and qApp.desktop().geometry().contains(QRect(_pos, self.size())):
         #if _pos and qApp.screenAt(_pos) and qApp.screenAt(_pos + (self.rect().bottomRight())):
             self.move(self.settings.value("pos"))
 
-        if self.settings.value("maximized", False, bool):
+        if sys.platform != "emscripten" and self.settings.value("maximized", False, bool):
             self.showMaximized()
 
         themes.Theme.set_theme(self.get_theme())
 
         self.combobox_devices = QComboBox()
         self.combobox_devices.currentIndexChanged.connect(self.on_device_selected)
+
+        selected_keymap = self.settings.value("keymap", DEFAULT_KEYMAP_NAME)
+        keymap_names = [keymap[0] for keymap in KEYMAPS]
+        if selected_keymap not in keymap_names:
+            selected_keymap = DEFAULT_KEYMAP_NAME
+        self.combobox_keymaps = QComboBox()
+        self.combobox_keymaps.addItems(keymap_names)
+        self.combobox_keymaps.setCurrentIndex(keymap_names.index(selected_keymap))
+        self.combobox_keymaps.setToolTip(tr("MainWindow", "Keyboard language used for key labels and symbol output"))
 
         self.btn_refresh_devices = QToolButton()
         self.btn_refresh_devices.setToolButtonStyle(Qt.ToolButtonTextOnly)
@@ -73,6 +82,8 @@ class MainWindow(QMainWindow):
         layout_combobox.addWidget(self.combobox_devices)
         if sys.platform != "emscripten":
             layout_combobox.addWidget(self.btn_refresh_devices)
+        layout_combobox.addWidget(QLabel(tr("MainWindow", "Keyboard language:")))
+        layout_combobox.addWidget(self.combobox_keymaps)
 
         self.layout_editor = LayoutEditor()
         self.keymap_editor = KeymapEditor(self.layout_editor)
@@ -125,6 +136,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(w)
 
         self.init_menu()
+        self.combobox_keymaps.currentIndexChanged.connect(self.change_keyboard_layout)
 
         self.autorefresh = Autorefresh()
         self.autorefresh.devices_updated.connect(self.on_devices_updated)
@@ -200,12 +212,14 @@ class MainWindow(QMainWindow):
         keyboard_layout_menu = self.menuBar().addMenu(tr("Menu", "Keyboard layout"))
         keymap_group = QActionGroup(self)
         selected_keymap = self.settings.value("keymap", DEFAULT_KEYMAP_NAME)
+        self.keymap_actions = []
         default_keymap_action = None
         default_keymap_index = 0
         for idx, keymap in enumerate(KEYMAPS):
             act = QAction(tr("KeyboardLayout", keymap[0]), self)
             act.triggered.connect(lambda checked, x=idx: self.change_keyboard_layout(x))
             act.setCheckable(True)
+            self.keymap_actions.append(act)
             if keymap[0] == DEFAULT_KEYMAP_NAME:
                 default_keymap_action = act
                 default_keymap_index = idx
@@ -420,8 +434,22 @@ class MainWindow(QMainWindow):
             self.autorefresh.current_device.keyboard.reset()
 
     def change_keyboard_layout(self, index):
-        self.settings.setValue("keymap", KEYMAPS[index][0])
-        KeycodeDisplay.set_keymap_override(KEYMAPS[index][1])
+        if index < 0 or index >= len(KEYMAPS):
+            return
+        name, override = KEYMAPS[index]
+        self.settings.setValue("keymap", name)
+        KeycodeDisplay.set_keymap_override(
+            override,
+            name,
+            KEYMAP_SELECTION_OVERRIDES.get(name),
+            KEYMAP_CHARACTER_KEYCODES.get(name),
+        )
+        if self.combobox_keymaps.currentIndex() != index:
+            self.combobox_keymaps.blockSignals(True)
+            self.combobox_keymaps.setCurrentIndex(index)
+            self.combobox_keymaps.blockSignals(False)
+        if hasattr(self, "keymap_actions"):
+            self.keymap_actions[index].setChecked(True)
 
     def get_theme(self):
         return self.settings.value("theme", "Dark")

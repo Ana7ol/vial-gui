@@ -35,7 +35,7 @@ themes = [
         QPalette.Button: "#353535",
         QPalette.ButtonText: "#ffffff",
         QPalette.BrightText: "#ff0000",
-        QPalette.Link: "#f7a948",
+        QPalette.Link: "#79d49a",
         QPalette.Highlight: "#bababa",
         QPalette.HighlightedText: "#232323",
         (QPalette.Active, QPalette.Button): "#353535",
@@ -304,7 +304,7 @@ QTabBar::tab:selected {
     background: #242925;
 }
 QTabBar::tab:hover:!selected {
-    color: #f2c66d;
+    color: #a6edbd;
 }
 QLineEdit, QPlainTextEdit, QTextBrowser, QSpinBox, QComboBox {
     min-height: 28px;
@@ -357,7 +357,7 @@ QLabel#sectionTitle {
     margin-top: 14px;
     padding: 8px 0 5px 0;
     border-bottom: 1px solid #3a413c;
-    color: #f2c66d;
+    color: #a6edbd;
     font-weight: bold;
 }
 QSlider::groove:horizontal {
@@ -374,7 +374,7 @@ QSlider::handle:horizontal {
     margin: -6px 0;
     border: 2px solid #121513;
     border-radius: 8px;
-    background: #f2c66d;
+    background: #79d49a;
 }
 QScrollBar:vertical {
     width: 11px;

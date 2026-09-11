@@ -8,7 +8,6 @@
   --line: #3a413c;
   --accent: #79d49a;
   --accent-strong: #a6edbd;
-  --amber: #f2c66d;
   --danger: #ff9d94;
 }
 
@@ -43,7 +42,7 @@ a {
 
 button:focus-visible,
 a:focus-visible {
-  outline: 3px solid var(--amber);
+  outline: 3px solid var(--accent);
   outline-offset: 3px;
 }
 
@@ -118,7 +117,7 @@ a:focus-visible {
 }
 
 .guide-link:hover {
-  color: var(--amber);
+  color: var(--accent);
 }
 
 .status-dot {
@@ -294,7 +293,7 @@ h2 {
   height: 5px;
   margin-right: 8px;
   border-radius: 50%;
-  background: var(--amber);
+  background: var(--accent);
   vertical-align: 2px;
 }
 
@@ -410,7 +409,7 @@ h2 {
 .diagnostics-toggle-dot[data-state="available"],
 .diagnostics-status-card[data-state="connecting"] .diagnostics-status-dot,
 .diagnostics-status-card[data-state="available"] .diagnostics-status-dot {
-  background: var(--amber);
+  background: var(--accent);
 }
 
 .connection-notice {
@@ -879,7 +878,7 @@ h2 {
   margin: 0;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--line);
-  color: var(--amber);
+  color: var(--accent-strong);
   font-size: 18px;
 }
 
