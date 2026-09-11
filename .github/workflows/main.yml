@@ -75,6 +75,18 @@ jobs:
         if ((Get-FileHash nsis-3.06.1-setup.exe -Algorithm sha256).Hash -ne "f60488a676308079bfdf6845dc7114cfd4bbff47b66be4db827b89bb8d7fdc52") { Write-Error 'SHA256 mismatch' }
         Start-Process -FilePath "nsis-3.06.1-setup.exe" -ArgumentList "/S", "/D=C:\Program Files (x86)\NSIS" -NoNewWindow -Wait
 
+    # fbs 0.9.0 requires both VC++ 2010 and 2012. Its missing-DLL error
+    # incorrectly recommends 2012 even when msvcr100.dll (2010) is missing.
+    - name: Install Visual C++ 2010 runtime required by fbs
+      run: |
+        $ErrorActionPreference = "Stop"
+        Invoke-WebRequest -Uri "https://download.microsoft.com/download/1/6/5/165255E7-1014-4D0A-B094-B6A430A6BFFC/vcredist_x64.exe" -OutFile "vcredist_2010_x64.exe"
+        $installer = Start-Process -FilePath ".\vcredist_2010_x64.exe" -ArgumentList "/q", "/norestart" -Wait -PassThru
+        if ($installer.ExitCode -notin @(0, 1638, 3010, 5100)) { throw "VC++ 2010 installer failed: $($installer.ExitCode)" }
+        # 5100 can mean a newer 2010 runtime is installed; require the DLL.
+        if (-not (Test-Path "$env:WINDIR\System32\msvcr100.dll")) { throw "Missing VC++ 2010 runtime: msvcr100.dll (installer exit $($installer.ExitCode))" }
+        Remove-Item "vcredist_2010_x64.exe"
+
     - name: Install Visual C++ 2012 runtime required by fbs
       run: |
         $ErrorActionPreference = "Stop"
@@ -91,6 +103,7 @@ jobs:
       run: |
         . .\venv\Scripts\activate.ps1
         fbs freeze
+        if ($LASTEXITCODE -ne 0) { throw "fbs freeze failed" }
         Compress-Archive -Path "target\Vial" -DestinationPath vial-win.zip
 
     - uses: actions/upload-artifact@v4
