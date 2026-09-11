@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-from PyQt5.QtCore import QSize, Qt
-from PyQt5.QtWidgets import QPushButton, QLabel, QHBoxLayout
+from PyQt5.QtCore import QRect, QSize, Qt
+from PyQt5.QtWidgets import QPushButton, QLabel, QHBoxLayout, QStyle, QStyleOptionButton
 
 class SquareButton(QPushButton):
 
@@ -23,8 +23,21 @@ class SquareButton(QPushButton):
 
     def sizeHint(self):
         size = int(round(self.fontMetrics().height() * self.scale))
-        # Include the style's padding and the full label, not just font height.
-        return super().sizeHint().expandedTo(QSize(size, size))
+        hint = super().sizeHint().expandedTo(QSize(size, size))
+        if not self.word_wrap:
+            # Older Qt styles can size by text advance and miss glyph overhang.
+            # Check the actual content area after the style applies its padding.
+            option = QStyleOptionButton()
+            self.initStyleOption(option)
+            option.rect = QRect(0, 0, hint.width(), hint.height())
+            content = self.style().subElementRect(QStyle.SE_PushButtonContents, option, self)
+            metrics = self.fontMetrics()
+            lines = option.text.split("\n")
+            text_width = max(metrics.boundingRect(line).width() for line in lines)
+            text_height = metrics.height() * len(lines)
+            hint += QSize(max(0, text_width - content.width()),
+                          max(0, text_height - content.height()))
+        return hint
 
     def minimumSizeHint(self):
         return self.sizeHint()

@@ -1,3 +1,5 @@
+import pytest
+
 from PyQt5.QtWidgets import QWidget, QApplication, QStyleOptionButton, QStyle
 
 from themes import CORNE_WEB_STYLESHEET
@@ -5,7 +7,8 @@ from widgets.flowlayout import FlowLayout
 from widgets.square_button import SquareButton
 
 
-def test_styled_key_buttons_fit_labels_and_wrap_with_gaps(qtbot):
+@pytest.mark.parametrize("point_size, italic", [(10, False), (10, True), (14, False), (18, True)])
+def test_styled_key_buttons_fit_labels_and_wrap_with_gaps(qtbot, point_size, italic):
     app = QApplication.instance()
     previous = app.styleSheet()
     app.setStyleSheet(CORNE_WEB_STYLESHEET)
@@ -16,6 +19,10 @@ def test_styled_key_buttons_fit_labels_and_wrap_with_gaps(qtbot):
         buttons = []
         for title in ["Layer 5", "Backspace", "RGB\nToggle", "Right Alt", "Print Screen"]:
             button = SquareButton()
+            font = button.font()
+            font.setPointSize(point_size)
+            font.setItalic(italic)
+            button.setFont(font)
             button.setText(title)
             layout.addWidget(button)
             buttons.append(button)
