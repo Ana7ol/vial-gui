@@ -9,6 +9,7 @@ from editor.basic_editor import BasicEditor
 from widgets.keyboard_widget import KeyboardWidget, EncoderWidget
 from keycodes.keycodes import Keycode
 from widgets.square_button import SquareButton
+from widgets.flowlayout import FlowLayout
 from tabbed_keycodes import TabbedKeycodes, keycode_filter_masked
 from util import tr, KeycodeDisplay
 from vial_device import VialKeyboard
@@ -30,14 +31,15 @@ class KeymapEditor(BasicEditor):
 
         self.layout_editor = layout_editor
 
-        self.layout_layers = QHBoxLayout()
+        self.layout_layers = FlowLayout(spacing=8)
+        layer_controls = QWidget()
+        layer_controls.setLayout(self.layout_layers)
         self.layout_size = QVBoxLayout()
         layer_label = QLabel(tr("KeymapEditor", "Layer"))
 
         layout_labels_container = QHBoxLayout()
         layout_labels_container.addWidget(layer_label)
-        layout_labels_container.addLayout(self.layout_layers)
-        layout_labels_container.addStretch()
+        layout_labels_container.addWidget(layer_controls, 1)
         layout_labels_container.addLayout(self.layout_size)
 
         # contains the actual keyboard
@@ -88,6 +90,8 @@ class KeymapEditor(BasicEditor):
         # create new layer labels
         for x in range(self.keyboard.layers):
             btn = SquareButton(str(x))
+            btn.setObjectName("layerButton")
+            btn.setMinimumSize(40, 40)
             btn.setFocusPolicy(Qt.NoFocus)
             btn.setRelSize(1.667)
             btn.setCheckable(True)

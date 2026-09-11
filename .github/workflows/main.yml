@@ -61,6 +61,7 @@ jobs:
     - uses: actions/setup-python@v4
       with:
         python-version: '3.6.x'
+        architecture: 'x64'
 
     - name: Setup venv
       run: |
@@ -74,10 +75,16 @@ jobs:
         if ((Get-FileHash nsis-3.06.1-setup.exe -Algorithm sha256).Hash -ne "f60488a676308079bfdf6845dc7114cfd4bbff47b66be4db827b89bb8d7fdc52") { Write-Error 'SHA256 mismatch' }
         Start-Process -FilePath "nsis-3.06.1-setup.exe" -ArgumentList "/S", "/D=C:\Program Files (x86)\NSIS" -NoNewWindow -Wait
 
-    - name: Install Visual C++ Redistributable
+    - name: Install Visual C++ 2012 runtime required by fbs
       run: |
-        Invoke-WebRequest -Uri "https://download.microsoft.com/download/3/2/2/3224B87F-CFA0-4E70-BDA3-3DE650EFEBA5/vcredist_x64.exe" -OutFile "vcredist_x64.exe"
-        Start-Process -FilePath "vcredist_x64.exe" -ArgumentList "/install", "/quiet", "/norestart" -Wait
+        $ErrorActionPreference = "Stop"
+        Invoke-WebRequest -Uri "https://download.microsoft.com/download/1/6/B/16B06F60-3B20-4FF2-B699-5E9B7962F9AE/VSU_4/vcredist_x64.exe" -OutFile "vcredist_x64.exe"
+        $installer = Start-Process -FilePath ".\vcredist_x64.exe" -ArgumentList "/install", "/quiet", "/norestart" -Wait -PassThru
+        if ($installer.ExitCode -notin @(0, 1638, 3010)) { throw "VC++ 2012 installer failed: $($installer.ExitCode)" }
+        foreach ($dll in @("msvcr110.dll", "msvcp110.dll")) {
+          if (-not (Test-Path "$env:WINDIR\System32\$dll")) { throw "Missing VC++ 2012 runtime: $dll" }
+        }
+        "$env:WINDIR\System32" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
         Remove-Item "vcredist_x64.exe"
 
     - name: Build

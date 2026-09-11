@@ -45,23 +45,22 @@ from PyQt5.QtWidgets import (QApplication, QLayout, QPushButton, QSizePolicy,
 
 
 class FlowLayout(QLayout):
-    def __init__(self, parent=None, margin=0, spacing=-1):
+    def __init__(self, parent=None, margin=0, spacing=6):
         super(FlowLayout, self).__init__(parent)
 
-        if parent is not None:
-            self.setContentsMargins(margin, margin, margin, margin)
+        self.setContentsMargins(margin, margin, margin, margin)
 
         self.setSpacing(spacing)
 
         self.itemList = []
 
     def __del__(self):
-        item = self.takeAt(0)
-        while item:
-            item = self.takeAt(0)
+        # The Qt layout may already be destroyed when Python releases it.
+        self.itemList.clear()
 
     def addItem(self, item):
         self.itemList.append(item)
+        self.invalidate()
 
     def count(self):
         return len(self.itemList)
@@ -74,7 +73,9 @@ class FlowLayout(QLayout):
 
     def takeAt(self, index):
         if index >= 0 and index < len(self.itemList):
-            return self.itemList.pop(index)
+            item = self.itemList.pop(index)
+            self.invalidate()
+            return item
 
         return None
 
@@ -101,23 +102,29 @@ class FlowLayout(QLayout):
         for item in self.itemList:
             size = size.expandedTo(item.minimumSize())
 
-        margin, _, _, _ = self.getContentsMargins()
-
-        size += QSize(2 * margin, 2 * margin)
+        left, top, right, bottom = self.getContentsMargins()
+        size += QSize(left + right, top + bottom)
         return size
 
     def doLayout(self, rect, testOnly):
-        x = rect.x()
-        y = rect.y()
+        left, top, right, bottom = self.getContentsMargins()
+        area = rect.adjusted(left, top, -right, -bottom)
+        x = area.x()
+        y = area.y()
         lineHeight = 0
 
         for item in self.itemList:
+            if item.isEmpty():
+                continue
             wid = item.widget()
-            spaceX = self.spacing() + wid.style().layoutSpacing(QSizePolicy.PushButton, QSizePolicy.PushButton, Qt.Horizontal)
-            spaceY = self.spacing() + wid.style().layoutSpacing(QSizePolicy.PushButton, QSizePolicy.PushButton, Qt.Vertical)
+            spaceX = self.spacing()
+            spaceY = self.spacing()
+            if spaceX < 0:
+                spaceX = max(6, wid.style().layoutSpacing(QSizePolicy.PushButton, QSizePolicy.PushButton, Qt.Horizontal))
+                spaceY = max(6, wid.style().layoutSpacing(QSizePolicy.PushButton, QSizePolicy.PushButton, Qt.Vertical))
             nextX = x + item.sizeHint().width() + spaceX
-            if nextX - spaceX > rect.right() and lineHeight > 0:
-                x = rect.x()
+            if nextX - spaceX > area.right() + 1 and lineHeight > 0:
+                x = area.x()
                 y = y + lineHeight + spaceY
                 nextX = x + item.sizeHint().width() + spaceX
                 lineHeight = 0
@@ -128,4 +135,4 @@ class FlowLayout(QLayout):
             x = nextX
             lineHeight = max(lineHeight, item.sizeHint().height())
 
-        return y + lineHeight - rect.y()
+        return y + lineHeight - rect.y() + bottom

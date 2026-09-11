@@ -71,6 +71,8 @@ def main(app):
     # Not sure of the best way to do this.
     global window
     window = MainWindow(app)
+    # Qt's browser window decoration can leave a bright title-bar strip.
+    window.setWindowFlag(QtCore.Qt.FramelessWindowHint, True)
     app.setStyleSheet(CORNE_WEB_STYLESHEET)
     # The browser canvas is the window. Do not restore a desktop-sized Qt
     # geometry inside it; that leaves clipped panes and resize flicker.

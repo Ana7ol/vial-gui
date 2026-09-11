@@ -348,6 +348,15 @@ QPushButton#osProfileButton:checked {
     color: #102016;
     background: #79d49a;
 }
+QPushButton#layerButton {
+    min-height: 30px;
+    padding: 4px 8px;
+}
+QPushButton#layerButton:checked:disabled {
+    border-color: #a6edbd;
+    color: #102016;
+    background: #79d49a;
+}
 QPushButton:disabled, QToolButton:disabled {
     color: #747c76;
     border-color: #343a35;
